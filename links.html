@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Weekly Role Assignments</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <header>
+        <h1>Links</h1>
+        <nav>
+            <a href="./index.html">Home</a>
+            <a href="./members.html">Members</a>
+            <a href="./roles.html">Roles</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Resource Links</h2>
+        <div class="link-form">
+            <input id="link-title" placeholder="Title" />
+            <input id="link-url" placeholder="URL" />
+            <input id="link-category" placeholder="Category" />
+            <button id="add-link">Add Link</button>
+        </div>
+
+        <table id="link-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>URL</th>
+                    <th>Category</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </main>
+
+    <script src="./js/storage.js"></script>
+    <script src="./js/links.js"></script>
+  </body>
+</html>
