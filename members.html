@@ -1,36 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html>
+<head>
+    <meta charset="UTF-8">
     <title>Members</title>
-    <link rel="stylesheet" href="./css/style.css" />
-  </head>
-  <body>
-    <header>
-      <h1>Members</h1>
-      <nav>
-        <a href="./index.html">Home</a>
-        <a href="./roles.html">Roles</a>
-        <a href="./links.html">Links</a>
-      </nav>
-    </header>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
 
-    <main>
-        <h2>Facilitators</h2>
-        <table id="member-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Availability</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <button id="add-member">Add Member</button>
-    </main>
+<header>
+    <h1>Members</h1>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="roles.html">Weekly Roles</a>
+        <a href="links.html">Links</a>
+    </nav>
+</header>
 
-    <script src="./js/members.js"></script>
-    <script src="./js/storage.js"></script>
-  </body>
+<main>
+    <h2>Facilitators</h2>
+
+    <table id="member-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Availability</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button id="add-member">Add Member</button>
+</main>
+
+<script src="./js/storage.js"></script>
+<script src="./js/members.js"></script>
+</body>
 </html>

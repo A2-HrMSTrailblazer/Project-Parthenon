@@ -1,7 +1,7 @@
 let members = load("members") || [
-    { name: "Leader 1", availability: "available" },
-    { name: "Leader 2", availability: "available" },
-    { name: "Facilitator 1", availability: "unknown" }
+    { name: "Mabel", availability: "available" },
+    { name: "Nyein", availability: "available" },
+    { name: "Pai", availability: "available" }
 ];
 
 const tableBody = document.querySelector("#member-table tbody");
