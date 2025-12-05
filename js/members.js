@@ -1,9 +1,7 @@
 let members = load("members") || [
-    { name: "Nyein", availability: "available" },
-    { name: "Mabel", availability: "available" },
-    { name: "Yoon", availability: "unavailable" },
-    { name: "Emily", availability: "unavailable" },
-    { name: "Alex", availability: "available" }
+    { name: "Leader 1", availability: "available" },
+    { name: "Leader 2", availability: "available" },
+    { name: "Facilitator 1", availability: "unknown" }
 ];
 
 const tableBody = document.querySelector("#member-table tbody");
@@ -16,8 +14,9 @@ function renderMembers() {
         row.innerHTML = `
             <td>${m.name}</td>
             <td>
-                <select data-index="${index}" class="availability-select">
+                <select data-index="${index}" class="availability">
                     <option value="available" ${m.availability === "available" ? "selected" : ""}>Available</option>
+                    <option value="maybe" ${m.availability === "maybe" ? "selected" : ""}>Maybe</option>
                     <option value="unavailable" ${m.availability === "unavailable" ? "selected" : ""}>Unavailable</option>
                 </select>
             </td>
@@ -40,7 +39,7 @@ document.getElementById("add-member").onclick = () => {
     const name = prompt("Enter member name:");
     if (!name) return;
 
-    members.push({ name, availability: "available" });
+    members.push({ name, availability: "unknown" });
     save("members", members);
     renderMembers();
 };
