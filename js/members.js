@@ -16,7 +16,6 @@ function renderMembers() {
             <td>
                 <select data-index="${index}" class="availability">
                     <option value="available" ${m.availability === "available" ? "selected" : ""}>Available</option>
-                    <option value="maybe" ${m.availability === "maybe" ? "selected" : ""}>Maybe</option>
                     <option value="unavailable" ${m.availability === "unavailable" ? "selected" : ""}>Unavailable</option>
                 </select>
             </td>
