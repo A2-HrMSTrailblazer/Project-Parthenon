@@ -1,5 +1,10 @@
 // Load members and roles
-let members = load("members") || [];
+let savedMembers = load("members");
+let members = (Array.isArray(savedMembers) && savedMembers.length > 0) ? savedMembers : [
+    { name: "Mabel", availability: "available" },
+    { name: "Nyein", availability: "available" },
+    { name: "Pai", availability: "available" }
+];
 let roles = load("roles") || {
     presenter: "",
     host: "",

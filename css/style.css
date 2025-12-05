@@ -39,3 +39,7 @@ button {
     margin-top: 10px;
     padding: 8px 12px;
 }
+
+select[multiple] {
+    height: 120px;
+}

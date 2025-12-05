@@ -4,6 +4,8 @@ let members = load("members") || [
     { name: "Pai", availability: "available" }
 ];
 
+save("members", members);
+
 const tableBody = document.querySelector("#member-table tbody");
 
 function renderMembers() {
