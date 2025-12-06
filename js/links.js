@@ -5,7 +5,7 @@ const addBtn = document.getElementById("add-link");
 
 function renderLinks() {
     tbody.innerHTML = "";
-    
+
     links.forEach((lk, index) => {
         const row = document.createElement("tr");
 
@@ -19,3 +19,34 @@ function renderLinks() {
         tbody.appendChild(row);
     })
 }
+
+addBtn.onclick = () => {
+    const title = document.getElementById("link-title").value.trim();
+    const url = document.getElementById("link-url").value.trim();
+    const category = document.getElementById("link-category").value.trim();
+
+    if (!title || !url) {
+        alert("Title and URL are required.");
+        return;
+    }
+
+    links.push({ title, url, category });
+    save("links", links);
+
+    renderLinks();
+
+    document.getElementById("link-title").value = "";
+    document.getElementById("link-url").value = "";
+    document.getElementById("link-category").value = "";
+};
+
+document.addEventListener("click", e => {
+    if (e.target.classList.contains("delete-link")) {
+        const i = e.target.dataset.index;
+        links.splice(i, 1);
+        save("links", links);
+        renderLinks();
+    }
+});
+
+renderLinks();

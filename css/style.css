@@ -28,6 +28,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     background: white;
+    margin-top: 1rem;
 }
 
 th, td {
@@ -38,8 +39,31 @@ th, td {
 button {
     margin-top: 10px;
     padding: 8px 12px;
+    color: white;
+    background: #333;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: black;
+}
+
+td button {
+    padding: 4px 10px;
+    background: #555;
+}
+
+td button:hover {
+    background: #222;
 }
 
 select[multiple] {
     height: 120px;
+}
+
+.link-form input {
+    padding: 6px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
 }
