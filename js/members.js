@@ -8,6 +8,7 @@ save("members", members);
 
 const tableBody = document.querySelector("#member-table tbody");
 
+// Members list table
 function renderMembers() {
     tableBody.innerHTML = "";
     members.forEach((m, index) => {
@@ -21,12 +22,14 @@ function renderMembers() {
                     <option value="unavailable" ${m.availability === "unavailable" ? "selected" : ""}>Unavailable</option>
                 </select>
             </td>
+            <td><button data-index="${index}" class="delete-member">Remove</button></td>
         `;
 
         tableBody.appendChild(row);
     });
 }
 
+// Change availability
 document.addEventListener("change", e => {
     if (e.target.classList.contains("availability")) {
         const index = e.target.dataset.index;
@@ -44,5 +47,15 @@ document.getElementById("add-member").onclick = () => {
     save("members", members);
     renderMembers();
 };
+
+// Delete member
+document.addEventListener("click", e => {
+    if (e.target.classList.contains("delete-member")) {
+        const i = e.target.dataset.index;
+        members.splice(i, 1);
+        save("members", members);
+        renderMembers();
+    }
+})
 
 renderMembers();

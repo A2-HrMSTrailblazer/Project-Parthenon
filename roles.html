@@ -1,74 +1,110 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Weekly Role Assignments</title>
-    <link rel="stylesheet" href="./css/style.css">
-</head>
-<body>
-
-<header>
-    <h1>Weekly Roles</h1>
-    <nav>
+    <link rel="stylesheet" href="./css/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <header>
+      <h1>Weekly Roles</h1>
+      <nav>
         <a href="./index.html">Home</a>
         <a href="./members.html">Members</a>
+        <a href="./roles.html">Roles</a>
         <a href="./links.html">Links</a>
-    </nav>
-</header>
+      </nav>
+    </header>
 
-<main>
-    <h2>Role Assignments for This Week</h2>
+    <main>
+      <h2>Role Assignments</h2>
 
-    <form id="roles-form">
+      <section>
+        <h3>1. The Presenter</h3>
+        <select id="presenter-select"></select>
+      </section>
 
-        <label>
-            Presenter:
-            <select id="presenter"></select>
-        </label><br><br>
+      <section>
+        <h3>2. Assign Teams</h3>
+        <div style="display: flex; gap: 20px">
+          <div>
+            <h4>Affirmative Team</h4>
+            <div id="aff-checkboxes"></div>
+            <div style="margin-top: 10px">
+              <label
+                >Spy Judge (Aff):
+                <select id="spy-aff"></select
+              ></label><br /><br />
+              <label
+                >Note Taker (Aff):
+                <select id="note-aff"></select>
+              </label><br /><br />
+            </div>
+          </div>
+          <div>
+            <h4>Negative Team</h4>
+            <div id="neg-checkboxes"></div>
+            <div style="margin-top: 10px">
+              <label
+                >Spy Judge (Neg):
+                <select id="spy-neg"></select
+              ></label><br /><br />
+              <label
+                >Note Taker (Neg):
+                <select id="note-neg"></select>
+              </label><br /><br />
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <label>
-            Host:
-            <select id="host"></select>
-        </label><br><br>
+      <!-- <section>
+        <h3>3. Specific Roles</h3>
+        <label
+          >Spy Judges (2):
+          <select id="spy-select" multiple></select></label
+        ><br /><br />
+        <label
+          >Note Takers(2):
+          <select id="note-select" multiple></select></label
+        ><br /><br />
+      </section>
 
-        <label>
-            Link:
-            <select id="linksharer"></select>
-        </label><br><br>
+      <section>
+        <h3>4. Support Roles</h3>
+        <label
+          >Host:
+          <select id="host-select"></select
+        ></label>
+        <br /><br />
+        <label
+          >Intro:
+          <select id="intro-select"></select
+        ></label>
+        <br /><br />
+        <label
+          >Weekly Manager:
+          <select id="weekly-manager-select"></select
+        ></label>
+        <br /><br />
+      </section> -->
 
-        <label>
-            Format:
-            <select id="formatter"></select>
-        </label><br><br>
+      <button type="button" id="save-roles">Save</button>
 
-        <label>
-            Intro:
-            <select id="intro"></select>
-        </label><br><br>
+      <div id="table-container">
+        <table id="assignment-table">
+          <thead>
+            <tr>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </main>
 
-        <label>
-            Weekly Manager:
-            <select id="manager"></select>
-        </label><br><br>
-
-        <label>
-            Spy Judges (2):
-            <select id="spy" multiple></select>
-        </label><br><br>
-
-        <label>
-            Note Takers (2):
-            <select id="notetakers" multiple></select>
-        </label><br><br>
-
-        <button type="button" id="save-roles">Save Assignments</button>
-    </form>
-
-    <p id="status"></p>
-
-</main>
-
-<script src="./js/storage.js"></script>
-<script src="./js/roles.js"></script>
-</body>
+    <script src="./js/storage.js"></script>
+    <script src="./js/roles.js"></script>
+  </body>
 </html>

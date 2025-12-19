@@ -1,82 +1,141 @@
-// Load members and roles
-let savedMembers = load("members");
-let members = (Array.isArray(savedMembers) && savedMembers.length > 0) ? savedMembers : [
-    { name: "Mabel", availability: "available" },
-    { name: "Nyein", availability: "available" },
-    { name: "Pai", availability: "available" }
-];
-let roles = load("roles") || {
-    presenter: "",
-    host: "",
-    linksharer: "",
-    formatter: "",
-    intro: "",
-    manager: "",
-    spy: [],
-    notetakers: []
+let members = load("members") || [];
+let roles = load("roles") || { 
+    presenter: "", affirmative: [], negative: [], 
+    spyAff: "", spyNeg: "", noteAff: "", noteNeg: "" 
 };
 
-// DOM elements
-const selects = {
-    presenter: document.getElementById("presenter"),
-    host: document.getElementById("host"),
-    linksharer: document.getElementById("linksharer"),
-    formatter: document.getElementById("formatter"),
-    intro: document.getElementById("intro"),
-    manager: document.getElementById("manager"),
-    spy: document.getElementById("spy"),
-    notetakers: document.getElementById("notetakers")
-};
+function init() {
+    renderPresenterList();
+    renderTeamCheckboxes();
+    updateSubRoleDropdowns();
+}
 
-// Populate dropdowns
-function populateOptions() {
-    const names = members.map(m => m.name);
+// 1. Presenter Selection
+function renderPresenterList() {
+    const sel = document.getElementById("presenter-select");
+    sel.innerHTML = '<option value="">-- Select Presenter --</option>';
+    members.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.name;
+        opt.textContent = m.name;
+        if (roles.presenter === m.name) opt.selected = true;
+        sel.appendChild(opt);
+    });
 
-    Object.keys(selects).forEach(key => {
-        const select = selects[key];
-        select.innerHTML = "";
+    sel.onchange = (e) => {
+        roles.presenter = e.target.value;
+        // If presenter was in a team, remove them
+        roles.affirmative = roles.affirmative.filter(n => n !== roles.presenter);
+        roles.negative = roles.negative.filter(n => n !== roles.presenter);
+        renderTeamCheckboxes();
+        updateSubRoleDropdowns();
+    };
+}
 
-        names.forEach(name => {
-            const option = document.createElement("option");
-            option.value = name;
-            option.textContent = name;
-            select.appendChild(option);
-        });
+// 2. Team Checkboxes with Mutual Exclusion
+function renderTeamCheckboxes() {
+    const affDiv = document.getElementById("aff-checkboxes");
+    const negDiv = document.getElementById("neg-checkboxes");
+    affDiv.innerHTML = ""; negDiv.innerHTML = "";
 
-        // Restore saved assignment
-        if (Array.isArray(roles[key])) {
-            // Multi-select roles
-            roles[key].forEach(savedName => {
-                const opt = [...select.options].find(o => o.value === savedName);
-                if (opt) opt.selected = true;
-            });
-        } else {
-            // Single-select roles
-            select.value = roles[key] || "";
-        }
+    members.forEach(m => {
+        if (m.name === roles.presenter) return;
+
+        // Aff Checkbox
+        const affCb = createCheckbox(m.name, 'aff', roles.affirmative.includes(m.name));
+        // Disable if already in Neg
+        if (roles.negative.includes(m.name)) affCb.querySelector('input').disabled = true;
+        affDiv.appendChild(affCb);
+
+        // Neg Checkbox
+        const negCb = createCheckbox(m.name, 'neg', roles.negative.includes(m.name));
+        // Disable if already in Aff
+        if (roles.affirmative.includes(m.name)) negCb.querySelector('input').disabled = true;
+        negDiv.appendChild(negCb);
     });
 }
 
-populateOptions();
+function createCheckbox(name, team, isChecked) {
+    const label = document.createElement("label");
+    label.style.display = "block";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.value = name;
+    cb.checked = isChecked;
+    cb.onchange = () => {
+        if (team === 'aff') {
+            roles.affirmative = [...document.querySelectorAll('#aff-checkboxes input:checked')].map(i => i.value);
+        } else {
+            roles.negative = [...document.querySelectorAll('#neg-checkboxes input:checked')].map(i => i.value);
+        }
+        renderTeamCheckboxes(); // Refresh to disable the other side
+        updateSubRoleDropdowns();
+    };
+    label.appendChild(cb);
+    label.append(` ${name}`);
+    return label;
+}
 
-// Save logic
+// 3. Populate Spy/Note Takers based on chosen team members
+function updateSubRoleDropdowns() {
+    const config = [
+        { id: "spy-aff", list: roles.affirmative, current: "spyAff" },
+        { id: "note-aff", list: roles.affirmative, current: "noteAff" },
+        { id: "spy-neg", list: roles.negative, current: "spyNeg" },
+        { id: "note-neg", list: roles.negative, current: "noteNeg" }
+    ];
+
+    config.forEach(item => {
+        const sel = document.getElementById(item.id);
+        const previousVal = roles[item.current];
+        sel.innerHTML = '<option value="">-- Select --</option>';
+        
+        item.list.forEach(name => {
+            const opt = document.createElement("option");
+            opt.value = name;
+            opt.textContent = name;
+            if (name === previousVal) opt.selected = true;
+            sel.appendChild(opt);
+        });
+
+        sel.onchange = (e) => {
+            roles[item.current] = e.target.value;
+            validateUniqueSubRoles();
+        };
+    });
+}
+
+// 4. Ensure Spy Judge and Note Taker aren't the same person
+function validateUniqueSubRoles() {
+    // Simple alert if user picks same person for both roles on one team
+    if (roles.spyAff && roles.spyAff === roles.noteAff) {
+        alert("One person cannot be both Spy Judge and Note Taker for the Affirmative team!");
+        roles.noteAff = "";
+        updateSubRoleDropdowns();
+    }
+    if (roles.spyNeg && roles.spyNeg === roles.noteNeg) {
+        alert("One person cannot be both Spy Judge and Note Taker for the Negative team!");
+        roles.noteNeg = "";
+        updateSubRoleDropdowns();
+    }
+}
+
 document.getElementById("save-roles").onclick = () => {
-
-    roles.presenter = selects.presenter.value;
-    roles.host = selects.host.value;
-    roles.linksharer = selects.linksharer.value;
-    roles.formatter = selects.formatter.value;
-    roles.intro = selects.intro.value;
-    roles.manager = selects.manager.value;
-
-    // Multi-select values
-    roles.spy = [...selects.spy.selectedOptions].map(o => o.value);
-    roles.notetakers = [...selects.notetakers.selectedOptions].map(o => o.value);
-
     save("roles", roles);
-
-    document.getElementById("status").textContent = "Saved!";
-    setTimeout(() => {
-        document.getElementById("status").textContent = "";
-    }, 1500);
+    renderTable();
 };
+
+function renderTable() {
+    const tbody = document.querySelector("#assignment-table tbody");
+    tbody.innerHTML = `
+        <tr><td>Presenter</td><td>${roles.presenter}</td></tr>
+        <tr><td>Affirmative Team</td><td>${roles.affirmative.join(", ")}</td></tr>
+        <tr><td>Negative Team</td><td>${roles.negative.join(", ")}</td></tr>
+        <tr><td>Spy (Aff)</td><td>${roles.spyAff}</td></tr>
+        <tr><td>Note Taker (Aff)</td><td>${roles.noteAff}</td></tr>
+        <tr><td>Spy (Neg)</td><td>${roles.spyNeg}</td></tr>
+        <tr><td>Note Taker (Neg)</td><td>${roles.noteNeg}</td></tr>
+    `;
+}
+
+init();
