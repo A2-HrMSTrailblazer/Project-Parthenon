@@ -1,7 +1,18 @@
 let members = load("members") || [
     { name: "Mabel", availability: "available" },
     { name: "Nyein", availability: "available" },
-    { name: "Pai", availability: "available" }
+    { name: "Pai", availability: "available" },
+    { name: "Yoon", availability: "available" },
+    { name: "Ruby", availability: "available" },
+    { name: "Emily", availability: "available" },
+    { name: "Moh Moh", availability: "available" },
+    { name: "Lucas", availability: "available" },
+    { name: "Willie", availability: "available" },
+    { name: "Tone Tone", availability: "available" },
+    { name: "Alex", availability: "available" },
+    { name: "Steven", availability: "available" },
+    { name: "Titi", availability: "available" },
+    { name: "Halen", availability: "available" },
 ];
 
 save("members", members);
@@ -43,7 +54,7 @@ document.getElementById("add-member").onclick = () => {
     const name = prompt("Enter member name:");
     if (!name) return;
 
-    members.push({ name, availability: "unknown" });
+    members.push({ name, availability: "available" });
     save("members", members);
     renderMembers();
 };

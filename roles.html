@@ -18,10 +18,69 @@
     </header>
 
     <main>
+      <div
+        id="batch-control-panel"
+        style="
+          background: #f4f4f4;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <div>
+          <label>Viewing: </label>
+          <select id="batch-select" style="padding: 5px"></select>
+        </div>
+        <button
+          id="new-batch-btn"
+          style="
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+          "
+        >
+          + Start New Batch
+        </button>
+        <button
+          id="delete-batch-btn"
+          style="
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+          "
+        >
+          Delete This Batch
+        </button>
+      </div>
+      <div
+        id="week-switcher"
+        style="
+          margin-bottom: 20px;
+          display: flex;
+          gap: 10px;
+          align-items: center;
+        "
+      >
+        <span>Select Week:</span>
+        <button type="button" class="week-btn" data-week="0">Week 1</button>
+        <button type="button" class="week-btn" data-week="1">Week 2</button>
+        <button type="button" class="week-btn" data-week="2">Week 3</button>
+        <button type="button" class="week-btn" data-week="3">Week 4</button>
+      </div>
       <h2>Role Assignments</h2>
 
       <section>
-        <h3>1. The Presenter</h3>
+        <h3>1. Presenter</h3>
         <select id="presenter-select"></select>
       </section>
 
