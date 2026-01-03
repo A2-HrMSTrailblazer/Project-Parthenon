@@ -32,27 +32,12 @@ function isMemberAssigned(name) {
 function renderMembers() {
     tableBody.innerHTML = "";
     members.forEach((m, index) => {
-        const assigned = isMemberAssigned(m.name);
         const row = document.createElement("tr");
-
-        // If they are assigned in a batch, we show "Assigned" status
-        // otherwise, we show the dropdown for Available/Leave
         row.innerHTML = `
-            <td style="${m.availability === 'leave' ? 'color: #721c24; text-decoration: line-through;' : ''}">
-                ${m.name} ${assigned ? '👤' : ''}
-            </td>
-            <td>
-                ${assigned ?
-                '<span style="color: #856404; font-weight: bold;">Assigned</span>' :
-                `<select data-index="${index}" class="availability">
-                        <option value="available" ${m.availability === "available" ? "selected" : ""}>✅ Available</option>
-                        <option value="leave" ${m.availability === "leave" ? "selected" : ""}>❌ Leave</option>
-                    </select>`
-            }
-            </td>
-            <td><button data-index="${index}" class="delete-member">Remove</button></td>
+            <td><strong>${m.name}</strong></td>
+            <td><span style="color: #666; font-size: 0.9em;">Active</span></td>
+            <td><button data-index="${index}" class="delete-member" style="color: red; border: 1px solid red; background: none; border-radius: 4px; cursor: pointer;">Remove</button></td>
         `;
-
         tableBody.appendChild(row);
     });
 }

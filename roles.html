@@ -82,65 +82,166 @@
 
       <section>
         <h3>1. Presenter</h3>
-        <select id="presenter-select"></select>
-      </section>
-
-      <section>
-        <h3>2. Assign Teams</h3>
-        <div style="display: flex; gap: 20px">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
           <div>
-            <h4>Affirmative Team</h4>
-            <div id="aff-checkboxes"></div>
-            <div style="margin-top: 10px">
-              <label
-                >Spy Judge (Aff):
-                <select id="spy-aff"></select></label
-              ><br /><br />
-              <label
-                >Note Taker (Aff):
-                <select id="note-aff"></select> </label
-              ><br /><br />
-            </div>
+            <label>Primary Presenter:</label><br />
+            <select id="presenter-select" style="width: 100%"></select>
           </div>
           <div>
-            <h4>Negative Team</h4>
-            <div id="neg-checkboxes"></div>
-            <div style="margin-top: 10px">
-              <label
-                >Spy Judge (Neg):
-                <select id="spy-neg"></select></label
-              ><br /><br />
-              <label
-                >Note Taker (Neg):
-                <select id="note-neg"></select> </label
-              ><br /><br />
-            </div>
+            <label>Backup Presenter:</label><br />
+            <select id="backup-presenter-select" style="width: 100%"></select>
           </div>
         </div>
       </section>
 
       <section>
-        <h3>3. Support Roles</h3>
-        <label
-          >Host:
-          <select id="host-select"></select></label
-        ><br /><br />
-        <label
-          >Intro:
-          <select id="intro-select"></select></label
-        ><br /><br />
-        <label
-          >Format:
-          <select id="format-select"></select></label
-        ><br /><br />
-        <label
-          >Link Sharer:
-          <select id="link-select"></select></label
-        ><br /><br />
-        <label
-          >Weekly Manager:
-          <select id="manager-select"></select></label
-        ><br /><br />
+        <h3>2. Support Roles</h3>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 150px 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+          "
+        >
+          <div>Role</div>
+          <div>Primary</div>
+          <div>Backup</div>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 150px 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          "
+        >
+          <label>Host:</label>
+          <select id="host-select"></select>
+          <select id="backup-host-select"></select>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 150px 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          "
+        >
+          <label>Intro:</label>
+          <select id="intro-select"></select>
+          <select id="backup-intro-select"></select>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 150px 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          "
+        >
+          <label>Format:</label>
+          <select id="format-select"></select>
+          <select id="backup-format-select"></select>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 150px 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          "
+        >
+          <label>Link Sharer:</label>
+          <select id="link-select"></select>
+          <select id="backup-link-select"></select>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 150px 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+          "
+        >
+          <label>Weekly Manager:</label>
+          <select id="manager-select"></select>
+          <select id="backup-manager-select"></select>
+        </div>
+      </section>
+
+      <section>
+        <h3>3. Assign Teams</h3>
+        <div style="display: flex; gap: 40px">
+          <div style="flex: 1">
+            <h4 style="color: green">✅ Affirmative Team</h4>
+            <div id="aff-checkboxes"></div>
+
+            <div
+              style="
+                margin-top: 15px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+              "
+            >
+              <div>
+                <label style="font-size: 0.85em">Spy (Aff):</label>
+                <select id="spy-aff" style="width: 100%"></select>
+              </div>
+              <div>
+                <label style="font-size: 0.85em">Backup Spy:</label>
+                <select id="backup-spy-aff" style="width: 100%"></select>
+              </div>
+              <div>
+                <label style="font-size: 0.85em">Note Taker (Aff):</label>
+                <select id="note-aff" style="width: 100%"></select>
+              </div>
+              <div>
+                <label style="font-size: 0.85em">Backup Note:</label>
+                <select id="backup-note-aff" style="width: 100%"></select>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex: 1">
+            <h4 style="color: red">❌ Negative Team</h4>
+            <div id="neg-checkboxes"></div>
+
+            <div
+              style="
+                margin-top: 15px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+              "
+            >
+              <div>
+                <label style="font-size: 0.85em">Spy (Neg):</label>
+                <select id="spy-neg" style="width: 100%"></select>
+              </div>
+              <div>
+                <label style="font-size: 0.85em">Backup Spy:</label>
+                <select id="backup-spy-neg" style="width: 100%"></select>
+              </div>
+              <div>
+                <label style="font-size: 0.85em">Note Taker (Neg):</label>
+                <select id="note-neg" style="width: 100%"></select>
+              </div>
+              <div>
+                <label style="font-size: 0.85em">Backup Note:</label>
+                <select id="backup-note-neg" style="width: 100%"></select>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <button type="button" id="save-roles">Save</button>
