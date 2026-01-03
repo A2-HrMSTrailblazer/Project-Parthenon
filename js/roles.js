@@ -17,7 +17,10 @@ function createNewBatch(name) {
     const newBatch = {
         id: name,
         status: "active",
-        weeks: Array.from({ length: 5 }, () => ({ roles: createEmptyRoles() }))
+        weeks: Array.from({ length: 5 }, () => ({
+            topic: "",
+            roles: createEmptyRoles()
+        }))
     };
     batches.forEach(b => b.status = "archive"); // Archive others
     batches.push(newBatch);
@@ -60,10 +63,13 @@ function refreshAll() {
 
     const oldContainer = document.getElementById("break-week-container");
     if (oldContainer) oldContainer.remove();
+    const oldTopic = document.getElementById("topic-container");
+    if (oldTopic) oldTopic.remove();
     
     if (isBreakWeek) {
         renderBreakWeekUI();
     } else{
+        renderTopicInput();
         renderPresenterList();
         renderTeamCheckboxes();
         updateSubRoleDropdowns();
@@ -77,6 +83,7 @@ function refreshAll() {
 
 function renderTable() {
     const tbody = document.querySelector("#assignment-table tbody");
+    const weekTopic = currentBatch.weeks[currentWeekIdx].topic || "No topic set";
     if (currentWeekIdx === 4) {
         tbody.innerHTML = `
             <tr><td>Content</td><td>${roles.content || "-"}</td></tr>
@@ -84,18 +91,19 @@ function renderTable() {
         `;
     } else {
         tbody.innerHTML = `
-            <tr><td><strong>Presenter</strong></td><td>${roles.presenter || "-"}</td></tr>
-            <tr><td><strong>Affirmative Team</strong></td><td>${roles.affirmative.join(", ") || "-"}</td></tr>
-            <tr><td><strong>Negative Team</strong></td><td>${roles.negative.join(", ") || "-"}</td></tr>
-            <tr><td>Spy (Aff)</td><td>${roles.spyAff || "-"}</td></tr>
-            <tr><td>Note Taker (Aff)</td><td>${roles.noteAff || "-"}</td></tr>
-            <tr><td>Spy (Neg)</td><td>${roles.spyNeg || "-"}</td></tr>
-            <tr><td>Note Taker (Neg)</td><td>${roles.noteNeg || "-"}</td></tr>
-            <tr style="border-top: 2px solid #ddd"><td>Host</td><td>${roles.host || "-"}</td></tr>
-            <tr><td>Intro</td><td>${roles.intro || "-"}</td></tr>
-            <tr><td>Format</td><td>${roles.format || "-"}</td></tr>
-            <tr><td>Link Sharer</td><td>${roles.linkSharer || "-"}</td></tr>
-            <tr><td>Weekly Manager</td><td>${roles.manager || "-"}</td></tr>
+            <tr style="background: #f1f3f5"><td colspan="2"><strong>Topic</strong></td><td>${weekTopic}</td></tr>
+            <tr><td colspan="2"><strong>Presenter</strong></td><td>${roles.presenter || "-"}</td></tr>
+            <tr><td colspan="2"><strong>Affirmative Team</strong></td><td>${roles.affirmative.join(", ") || "-"}</td></tr>
+            <tr><td colspan="2"><strong>Negative Team</strong></td><td>${roles.negative.join(", ") || "-"}</td></tr>
+            <tr><td colspan="2">Spy (Aff)</td><td>${roles.spyAff || "-"}</td></tr>
+            <tr><td colspan="2">Note Taker (Aff)</td><td>${roles.noteAff || "-"}</td></tr>
+            <tr><td colspan="2">Spy (Neg)</td><td>${roles.spyNeg || "-"}</td></tr>
+            <tr><td colspan="2">Note Taker (Neg)</td><td>${roles.noteNeg || "-"}</td></tr>
+            <tr style="border-top: 2px solid #ddd"><td colspan="2">Host</td><td>${roles.host || "-"}</td></tr>
+            <tr><td colspan="2">Intro</td><td>${roles.intro || "-"}</td></tr>
+            <tr><td colspan="2">Format</td><td>${roles.format || "-"}</td></tr>
+            <tr><td colspan="2">Link Sharer</td><td>${roles.linkSharer || "-"}</td></tr>
+            <tr><td colspan="2">Weekly Manager</td><td>${roles.manager || "-"}</td></tr>
         `;
     }
 }
@@ -144,6 +152,31 @@ function setupDropdown(elementId, roleKey, otherRoleKey) {
         roles[roleKey] = e.target.value;
         refreshAll(); 
     };
+}
+
+function renderTopicInput() {
+    let container = document.getElementById("topic-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "topic-container";
+        document.querySelector("h2").after(container);
+    }
+
+    container.innerHTML = `
+        <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 5px solid #007bff;">
+            <label><strong>Debate Topic:</strong></label><br>
+            <input type="text" id="topic-field"
+                   placeholder="Enter debate topic here..."
+                   style="width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
+                   value="${currentBatch.weeks[currentWeekIdx].topic || ''}">
+        </div>
+    `;
+
+    const input = document.getElementById("topic-field");
+    input.oninput = e => {
+        currentBatch.weeks[currentWeekIdx].topic = e.target.value;
+        save("batches", batches);
+    }
 }
 
 // --- DEBATE ROLE HELPERS ---
