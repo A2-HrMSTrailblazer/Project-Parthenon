@@ -5,10 +5,39 @@ let currentWeekIdx = 0;
 let roles;
 
 // --- INITIALIZATION ---
+function migrateData() {
+    batches.forEach(batch => {
+        if (batch.weeks) {
+            batch.weeks.forEach(week => {
+                // Ensure roles object exists
+                if (!week.roles) week.roles = createEmptyRoles();
+
+                // Ensure the 'onLeave' array exists
+                if (!week.roles.onLeave) {
+                    week.roles.onLeave = [];
+                }
+
+                // Ensure all backup keys exist so the UI doesn't crash
+                const empty = createEmptyRoles();
+                Object.keys(empty).forEach(key => {
+                    if (week.roles[key] === undefined) {
+                        week.roles[key] = empty[key];
+                    }
+                });
+            });
+        }
+    });
+    save("batches", batches);
+}
+
+// Update your initialization to call the migration
 function initializeData() {
     if (batches.length === 0) {
         createNewBatch("Batch 1");
     }
+
+    migrateData(); // Fixes old data structures immediately
+
     currentBatch = batches.find(b => b.status === "active") || batches[batches.length - 1];
     setWeek(0);
 }
@@ -71,8 +100,12 @@ function setWeek(idx) {
 function refreshAll() {
     const isBreakWeek = (currentWeekIdx === 4);
 
-    // Remove old versions to prevent duplication, including the new attendance container
-    document.querySelectorAll("#break-week-container, #topic-container, #session-report, #attendance-container").forEach(el => el.remove());
+    // Guard: Only remove if they exist to prevent errors
+    const elementsToClean = ["#break-week-container", "#topic-container", "#session-report", "#attendance-container"];
+    elementsToClean.forEach(selector => {
+        const el = document.querySelector(selector);
+        if (el) el.remove();
+    });
 
     // 1. Render Dashboard
     renderParticipantDashboard();
@@ -80,17 +113,20 @@ function refreshAll() {
     if (isBreakWeek) {
         renderBreakWeekUI();
     } else {
-        // 2. Render Topic & Attendance (The "Source of Truth" for the week)
-        renderTopicInput();
-        renderAttendanceToggles(); // Integrated here
-        
-        // 3. Render Role Selections (Filtered by Attendance)
-        renderPresenterList();
-        renderTeamCheckboxes();
-        updateSubRoleDropdowns();
-        renderSupportRoles();
-        
-        // 4. Render Final Report
+        // Only run these if the corresponding HTML IDs exist
+        if (document.querySelector("h2")) {
+            renderTopicInput();
+            renderAttendanceToggles();
+        }
+
+        // Ensure the presenter select exists before trying to fill it
+        if (document.getElementById("presenter-select")) {
+            renderPresenterList();
+            renderTeamCheckboxes();
+            updateSubRoleDropdowns();
+            renderSupportRoles();
+        }
+
         renderPostSessionReport();
     }
     renderTable();
@@ -274,7 +310,7 @@ function renderAttendanceToggles() {
 
     // Helper: Check if a name is used anywhere in the current week's roles
     const getAssignedNames = () => {
-        return Object.values(roles).flat(); 
+        return Object.values(roles).flat();
     };
     const assignedNames = getAssignedNames();
 
@@ -293,7 +329,7 @@ function renderAttendanceToggles() {
     members.forEach(m => {
         const isCurrentlyOnLeave = roles.onLeave.includes(m.name);
         const isAssigned = assignedNames.includes(m.name);
-        
+
         const label = document.createElement("label");
         label.style.cssText = `
             font-size: 0.85em;
