@@ -19,19 +19,36 @@ save("members", members);
 
 const tableBody = document.querySelector("#member-table tbody");
 
+function isMemberAssigned(name) {
+    const batches = load("batches") || [];
+    return batches.some(batch => {
+        return batch.status === "active" && batch.weeks.some(week => {
+            return Object.values(week.roles).flat().includes(name)
+        })
+    });
+}
+
 // Members list table
 function renderMembers() {
     tableBody.innerHTML = "";
     members.forEach((m, index) => {
+        const assigned = isMemberAssigned(m.name);
         const row = document.createElement("tr");
 
+        // If they are assigned in a batch, we show "Assigned" status
+        // otherwise, we show the dropdown for Available/Leave
         row.innerHTML = `
-            <td>${m.name}</td>
+            <td style="${m.availability === 'leave' ? 'color: #721c24; text-decoration: line-through;' : ''}">
+                ${m.name} ${assigned ? '👤' : ''}
+            </td>
             <td>
-                <select data-index="${index}" class="availability">
-                    <option value="available" ${m.availability === "available" ? "selected" : ""}>Available</option>
-                    <option value="unavailable" ${m.availability === "unavailable" ? "selected" : ""}>Unavailable</option>
-                </select>
+                ${assigned ?
+                '<span style="color: #856404; font-weight: bold;">Assigned</span>' :
+                `<select data-index="${index}" class="availability">
+                        <option value="available" ${m.availability === "available" ? "selected" : ""}>✅ Available</option>
+                        <option value="leave" ${m.availability === "leave" ? "selected" : ""}>❌ Leave</option>
+                    </select>`
+            }
             </td>
             <td><button data-index="${index}" class="delete-member">Remove</button></td>
         `;
