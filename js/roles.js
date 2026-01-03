@@ -218,7 +218,6 @@ function createCheckbox(name, team, isChecked, isDisabled) {
 
     if (isDisabled) {
         label.style.color = "#bbb";
-        label.style.cursor = "not-allowed";
     }
 
     cb.onchange = () => { 
