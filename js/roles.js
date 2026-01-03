@@ -17,7 +17,7 @@ function createNewBatch(name) {
     const newBatch = {
         id: name,
         status: "active",
-        weeks: Array.from({ length: 4 }, () => ({ roles: createEmptyRoles() }))
+        weeks: Array.from({ length: 5 }, () => ({ roles: createEmptyRoles() }))
     };
     batches.forEach(b => b.status = "archive"); // Archive others
     batches.push(newBatch);
@@ -43,8 +43,8 @@ function setWeek(idx) {
     roles = currentBatch.weeks[idx].roles;
 
     // Toggle Section Visibility
-    const isWeek4 = (idx === 3);
-    document.querySelectorAll('section').forEach(sec => sec.style.display = isWeek4 ? "none" : "block");
+    const isBreakWeek = (idx === 4);
+    document.querySelectorAll('section').forEach(sec => sec.style.display = isBreakWeek ? "none" : "block");
 
     // Update Button Highlights
     document.querySelectorAll(".week-btn").forEach((btn, i) => {
@@ -56,14 +56,14 @@ function setWeek(idx) {
 }
 
 function refreshAll() {
-    const isWeek4 = (currentWeekIdx === 3);
+    const isBreakWeek = (currentWeekIdx === 4);
+
+    const oldContainer = document.getElementById("break-week-container");
+    if (oldContainer) oldContainer.remove();
     
-    if (isWeek4) {
-        renderWeek4UI();
-    } else {
-        const w4 = document.getElementById("week4-container");
-        if (w4) w4.remove();
-        
+    if (isBreakWeek) {
+        renderBreakWeekUI();
+    } else{
         renderPresenterList();
         renderTeamCheckboxes();
         updateSubRoleDropdowns();
@@ -77,7 +77,7 @@ function refreshAll() {
 
 function renderTable() {
     const tbody = document.querySelector("#assignment-table tbody");
-    if (currentWeekIdx === 3) {
+    if (currentWeekIdx === 4) {
         tbody.innerHTML = `
             <tr><td>Content</td><td>${roles.content || "-"}</td></tr>
             <tr><td>Graphic</td><td>${roles.graphic || "-"}</td></tr>
@@ -100,17 +100,17 @@ function renderTable() {
     }
 }
 
-function renderWeek4UI() {
-    let container = document.getElementById("week4-container");
+function renderBreakWeekUI() {
+    let container = document.getElementById("break-week-container");
     if (!container) {
         container = document.createElement("div");
-        container.id = "week4-container";
+        container.id = "break-week-container";
         document.querySelector("h2").after(container);
     }
 
     container.innerHTML = `
         <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #90caf9;">
-            <h3 style="margin-top:0; color: #0d47a1">Week 4: Break Week</h3>
+            <h3 style="margin-top:0; color: #0d47a1">Break Week</h3>
             <div style="margin-bottom: 15px">
                 <label><strong>Content:</strong></label><br>
                 <select id="content-select" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc;"></select>
