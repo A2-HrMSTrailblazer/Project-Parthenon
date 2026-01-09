@@ -1,48 +1,61 @@
-let members = load("members") || [];
-let batches = load("batches") || [];
+/**
+ * GLOBAL STATE
+ * Initialized as empty; populated by the async init() function.
+ */
+let members = [];
+let batches = [];
 let currentBatch;
 let currentWeekIdx = 0;
 let roles;
 
-// --- INITIALIZATION ---
-function migrateData() {
+// --- INITIALIZATION (Async aware) ---
+
+async function migrateData() {
+    let needsSave = false;
     batches.forEach(batch => {
         if (batch.weeks) {
             batch.weeks.forEach(week => {
-                // Ensure roles object exists
-                if (!week.roles) week.roles = createEmptyRoles();
-
-                // Ensure the 'onLeave' array exists
-                if (!week.roles.onLeave) {
-                    week.roles.onLeave = [];
+                if (!week.roles) {
+                    week.roles = createEmptyRoles();
+                    needsSave = true;
                 }
 
-                // Ensure all backup keys exist so the UI doesn't crash
+                // Ensure 'onLeave' array exists
+                if (!week.roles.onLeave) {
+                    week.roles.onLeave = [];
+                    needsSave = true;
+                }
+
+                // Ensure all backup keys exist so UI doesn't crash
                 const empty = createEmptyRoles();
                 Object.keys(empty).forEach(key => {
                     if (week.roles[key] === undefined) {
                         week.roles[key] = empty[key];
+                        needsSave = true;
                     }
                 });
             });
         }
     });
-    save("batches", batches);
+    if (needsSave) await save("batches", batches);
 }
 
 // Update your initialization to call the migration
-function initializeData() {
+async function initializeData() {
+    // If no batches exist, create the first one
     if (batches.length === 0) {
-        createNewBatch("Batch 1");
+        await createNewBatch("Batch 1");
     }
 
-    migrateData(); // Fixes old data structures immediately
+    // Fix old data structures immediately
+    await migrateData();
 
+    // Set active batch
     currentBatch = batches.find(b => b.status === "active") || batches[batches.length - 1];
     setWeek(0);
 }
 
-function createNewBatch(name) {
+async function createNewBatch(name) {
     const newBatch = {
         id: name,
         status: "active",
@@ -52,9 +65,10 @@ function createNewBatch(name) {
             roles: createEmptyRoles()
         }))
     };
-    batches.forEach(b => b.status = "archive"); // Archive others
+    // Archive previous batches
+    batches.forEach(b => b.status = "archive");
     batches.push(newBatch);
-    save("batches", batches);
+    await save("batches", batches);
     return newBatch;
 }
 
@@ -64,12 +78,8 @@ function createEmptyRoles() {
         spyAff: "", spyNeg: "", noteAff: "", noteNeg: "",
         host: "", intro: "", format: "", linkSharer: "", manager: "",
         content: "", graphic: "",
-        backupPresenter: "",
-        backupHost: "",
-        backupManager: "",
-        backupLinkSharer: "",
-        backupIntro: "",
-        backupFormat: "",
+        backupPresenter: "", backupHost: "", backupManager: "",
+        backupLinkSharer: "", backupIntro: "", backupFormat: "",
         backupSpyAff: "", backupNoteAff: "",
         backupSpyNeg: "", backupNoteNeg: "",
         onLeave: []
@@ -78,7 +88,6 @@ function createEmptyRoles() {
 
 // --- CORE UI CONTROLS ---
 function setWeek(idx) {
-    if (!currentBatch.weeks && currentBatch.week) currentBatch.weeks = currentBatch.week;
     if (!currentBatch.weeks || !currentBatch.weeks[idx]) return;
 
     currentWeekIdx = idx;
@@ -91,42 +100,36 @@ function setWeek(idx) {
     // Update Button Highlights
     document.querySelectorAll(".week-btn").forEach((btn, i) => {
         btn.style.backgroundColor = (i === idx) ? "#007bff" : "#ccc";
-        btn.style.color = "white";
     });
 
     refreshAll();
 }
 
 function refreshAll() {
+    if (members.length === 0) return;
     const isBreakWeek = (currentWeekIdx === 4);
 
-    // Guard: Only remove if they exist to prevent errors
-    const elementsToClean = ["#break-week-container", "#topic-container", "#session-report", "#attendance-container"];
-    elementsToClean.forEach(selector => {
+    // Clean dynamic containers
+    ["#break-week-container", "#topic-container", "#session-report", "#attendance-container", "#participant-dashboard"].forEach(selector => {
         const el = document.querySelector(selector);
         if (el) el.remove();
     });
 
-    // 1. Render Dashboard
     renderParticipantDashboard();
 
     if (isBreakWeek) {
         renderBreakWeekUI();
     } else {
-        // Only run these if the corresponding HTML IDs exist
-        if (document.querySelector("h2")) {
-            renderTopicInput();
-            renderAttendanceToggles();
-        }
+        renderTopicInput();
+        renderAttendanceToggles();
 
-        // Ensure the presenter select exists before trying to fill it
+        // Populate all Dropdowns
         if (document.getElementById("presenter-select")) {
             renderPresenterList();
             renderTeamCheckboxes();
             updateSubRoleDropdowns();
             renderSupportRoles();
         }
-
         renderPostSessionReport();
     }
     renderTable();
@@ -143,52 +146,30 @@ function renderTable() {
             <tr><td>Content</td><td colspan="2">${roles.content || "-"}</td></tr>
             <tr><td>Graphic</td><td colspan="2">${roles.graphic || "-"}</td></tr>
         `;
-    }
-    else {
-        // Inside the else block of renderTable()
+    } else {
         tbody.innerHTML = `
             <tr style="background: #f1f3f5">
                 <td><strong>Topic</strong></td>
                 <td colspan="2"><strong>${weekTopic}</strong></td>
             </tr>
-            
             <tr style="background: #e9ecef; font-weight: bold; font-size: 0.8em;">
-                <td>ROLE</td>
-                <td>PRIMARY</td>
-                <td>BACKUP</td>
+                <td>ROLE</td><td>PRIMARY</td><td>BACKUP</td>
             </tr>
-
             <tr><td><strong>Presenter</strong></td><td>${roles.presenter || "-"}</td><td>${roles.backupPresenter || "-"}</td></tr>
             <tr><td><strong>Host</strong></td><td>${roles.host || "-"}</td><td>${roles.backupHost || "-"}</td></tr>
-            <tr>
-                <td><strong>Intro</strong></td><td>${roles.intro || "-"}</td><td>${roles.backupIntro || "-"}</td>
-            </tr>
+            <tr><td><strong>Intro</strong></td><td>${roles.intro || "-"}</td><td>${roles.backupIntro || "-"}</td></tr>
             <tr><td><strong>Format</strong></td><td>${roles.format || "-"}</td><td>${roles.backupFormat || "-"}</td></tr>
             <tr><td><strong>Link Sharer</strong></td><td>${roles.linkSharer || "-"}</td><td>${roles.backupLinkSharer || "-"}</td></tr>
             <tr><td><strong>Manager</strong></td><td>${roles.manager || "-"}</td><td>${roles.backupManager || "-"}</td></tr>
-
-            <tr style="border-top: 2px solid #ddd">
-                <td><strong style="color: green;">✅ Aff Team</strong></td>
-                <td colspan="2">${roles.affirmative.join(", ") || "-"}</td>
-            </tr>
-            <tr style="font-size: 0.9em; background: #fafffa;">
-                <td>Affirmative Spy Judge</td><td>${roles.spyAff || "-"}</td><td style="color: #666;">${roles.backupSpyAff || "-"}</td>
-            </tr>
-            <tr style="font-size: 0.9em; background: #fafffa;">
-                <td>Affirmative Note-taker</td><td>${roles.noteAff || "-"}</td><td style="color: #666;">${roles.backupNoteAff || "-"}</td>
-            </tr>
-
-            <tr style="border-top: 1px solid #eee">
-                <td><strong style="color: red;">❌ Neg Team</strong></td>
-                <td colspan="2">${roles.negative.join(", ") || "-"}</td>
-            </tr>
-            <tr style="font-size: 0.9em; background: #fffafb;">
-                <td>Negative Spy Judge</td><td>${roles.spyNeg || "-"}</td><td style="color: #666;">${roles.backupSpyNeg || "-"}</td>
-            </tr>
-            <tr style="font-size: 0.9em; background: #fffafb;">
-                <td>Negative Note-taker</td><td>${roles.noteNeg || "-"}</td><td style="color: #666;">${roles.backupNoteNeg || "-"}</td>
-            </tr>
-    `;
+            
+            <tr style="border-top: 2px solid #ddd"><td style="color:green"><strong>✅ Aff Team</strong></td><td colspan="2">${roles.affirmative.join(", ") || "-"}</td></tr>
+            <tr style="font-size:0.85em"><td>Spy Judge</td><td>${roles.spyAff || "-"}</td><td style="color:#777">${roles.backupSpyAff || "-"}</td></tr>
+            <tr style="font-size:0.85em"><td>Note-Taker</td><td>${roles.noteAff || "-"}</td><td style="color:#777">${roles.backupNoteAff || "-"}</td></tr>
+            
+            <tr style="border-top: 1px solid #eee"><td style="color:red"><strong>❌ Neg Team</strong></td><td colspan="2">${roles.negative.join(", ") || "-"}</td></tr>
+            <tr style="font-size:0.85em"><td>Spy Judge</td><td>${roles.spyNeg || "-"}</td><td style="color:#777">${roles.backupSpyNeg || "-"} </td></tr>
+            <tr style="font-size:0.85em"><td>Note-Taker</td><td> ${roles.noteNeg || "-"}</td><td style="color:#777"> ${roles.backupNoteNeg || "-"}</td></tr>
+        `;
     }
 }
 
@@ -301,27 +282,16 @@ function renderParticipantDashboard() {
 }
 
 function renderAttendanceToggles() {
-    let container = document.getElementById("attendance-container");
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "attendance-container";
-        document.querySelector("#topic-container").after(container);
-    }
+    let container = document.createElement("div");
+    container.id = "attendance-container";
+    document.querySelector("#topic-container").after(container);
 
-    // Helper: Check if a name is used anywhere in the current week's roles
-    const getAssignedNames = () => {
-        return Object.values(roles).flat();
-    };
-    const assignedNames = getAssignedNames();
+    const assignedNames = Object.values(roles).flat();
 
     container.innerHTML = `
         <div style="background: #fdfdfe; border: 1px solid #e0e0e0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h4 style="margin:0; color: #444;">Facilitator Availability (Week ${currentWeekIdx + 1})</h4>
-                <span style="font-size: 0.8em; color: #666;">👤 = Currently Assigned</span>
-            </div>
-            <div id="attendance-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;">
-            </div>
+            <h4 style="margin:0 0 10px 0;">Attendance (Week ${currentWeekIdx + 1})</h4>
+            <div id="attendance-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;"></div>
         </div>
     `;
 
@@ -331,39 +301,25 @@ function renderAttendanceToggles() {
         const isAssigned = assignedNames.includes(m.name);
 
         const label = document.createElement("label");
-        label.style.cssText = `
-            font-size: 0.85em;
-            padding: 8px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid ${isCurrentlyOnLeave ? '#ffcdd2' : '#c8e6c9'};
-            background-color: ${isCurrentlyOnLeave ? "#ffebee" : "#f1fbf1"};
-            color: ${isCurrentlyOnLeave ? "#b71c1c" : "#2e7d32"};
-        `;
+        label.className = "attendance-label";
+        label.style.cssText = `padding:8px; border-radius:6px; border:1px solid ${isCurrentlyOnLeave ? '#ffcdd2' : '#c8e6c9'}; background:${isCurrentlyOnLeave ? '#ffebee' : '#f1fbf1'}; cursor:pointer; font-size:0.8em;`;
 
         const cb = document.createElement("input");
         cb.type = "checkbox";
         cb.checked = !isCurrentlyOnLeave;
-        cb.style.marginRight = "8px";
+        cb.style.marginRight = "5px";
 
-        cb.onchange = () => {
+        cb.onchange = async () => {
             if (!cb.checked) {
                 if (!roles.onLeave.includes(m.name)) roles.onLeave.push(m.name);
-                // Optional: Alert if they were assigned but just marked as on leave
-                if (isAssigned) alert(`${m.name} is currently assigned to a role! Remember to reassign their spot.`);
             } else {
                 roles.onLeave = roles.onLeave.filter(name => name !== m.name);
             }
-            save("batches", batches);
+            await save("batches", batches);
             refreshAll();
         };
 
-        label.appendChild(cb);
-        // Add the name and the status icon if assigned
-        label.append(`${m.name} ${isAssigned ? ' 👤' : ''}`);
+        label.append(cb, `${m.name}${isAssigned ? ' 👤' : ''}`);
         grid.appendChild(label);
     });
 }
@@ -390,52 +346,6 @@ function renderPresenterList() {
         roles.negative = roles.negative.filter(n => n !== roles.presenter);
         refreshAll();
     };
-}
-
-function renderTeamCheckboxes() {
-    const affDiv = document.getElementById("aff-checkboxes");
-    const negDiv = document.getElementById("neg-checkboxes");
-    if (!affDiv || !negDiv) return;
-    affDiv.innerHTML = ""; negDiv.innerHTML = "";
-
-    // FILTER: Only show members NOT on leave this week
-    const presentMembers = members.filter(m => !roles.onLeave.includes(m.name));
-
-    presentMembers.forEach(m => {
-        if (m.name === roles.presenter) return;
-
-        const isDisabledInAff = roles.negative.includes(m.name);
-        affDiv.appendChild(createCheckbox(m.name, 'aff', roles.affirmative.includes(m.name), isDisabledInAff));
-
-        const isDisabledInNeg = roles.affirmative.includes(m.name);
-        negDiv.appendChild(createCheckbox(m.name, 'neg', roles.negative.includes(m.name), isDisabledInNeg));
-    });
-}
-
-function createCheckbox(name, team, isChecked, isDisabled) {
-    const label = document.createElement("label");
-    label.style.display = "block";
-    if (isDisabled) label.style.color = "#bbb";
-
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.value = name;
-    cb.checked = isChecked;
-    cb.disabled = isDisabled;
-
-    cb.onchange = () => {
-        if (team === 'aff') {
-            roles.affirmative = [...document.querySelectorAll('#aff-checkboxes input:checked')].map(i => i.value);
-        } else {
-            roles.negative = [...document.querySelectorAll('#neg-checkboxes input:checked')].map(i => i.value);
-        }
-        save("batches", batches);
-        refreshAll();
-    };
-
-    label.appendChild(cb);
-    label.append(` ${name}`);
-    return label;
 }
 
 function renderPostSessionReport() {
@@ -482,16 +392,17 @@ function renderPostSessionReport() {
     };
 }
 
-// 2. Team Checkboxes (Prevents being on both teams, but allows Support Roles) 
+// 2. Team Checkboxes (Corrected to use the OnLeave system) 
 function renderTeamCheckboxes() {
     const affDiv = document.getElementById("aff-checkboxes");
     const negDiv = document.getElementById("neg-checkboxes");
     if (!affDiv || !negDiv) return;
     affDiv.innerHTML = ""; negDiv.innerHTML = "";
 
-    const availableMembers = members.filter(m => m.availability === "available");
+    // FIX: Filter based on who is NOT on leave this week
+    const presentMembers = members.filter(m => !roles.onLeave.includes(m.name));
 
-    availableMembers.forEach(m => {
+    presentMembers.forEach(m => {
         if (m.name === roles.presenter) return;
 
         // Aff Checkbox: Disabled if they are already in the Negative team
@@ -508,7 +419,14 @@ function renderTeamCheckboxes() {
 
 function createCheckbox(name, team, isChecked, isDisabled) {
     const label = document.createElement("label");
+    const info = getAssignmentInfo(name);
+
     label.style.display = "block";
+    label.style.padding = "6px 10px";
+    label.style.margin = "4px 0";
+    label.style.borderRadius = "6px";
+    label.style.fontSize = "0.85em";
+    label.style.transition = "all 0.2s ease";
 
     const cb = document.createElement("input");
     cb.type = "checkbox";
@@ -520,7 +438,7 @@ function createCheckbox(name, team, isChecked, isDisabled) {
         label.style.color = "#bbb";
     }
 
-    cb.onchange = () => {
+    cb.onchange = async () => {
         if (team === 'aff') {
             if (cb.checked) {
                 roles.negative = roles.negative.filter(n => n !== name);
@@ -533,7 +451,7 @@ function createCheckbox(name, team, isChecked, isDisabled) {
             roles.negative = [...document.querySelectorAll('#neg-checkboxes input:checked')].map(i => i.value);
         }
 
-        save("batches", batches);
+        await save("batches", batches);
         refreshAll();
     };
 
@@ -551,25 +469,44 @@ function renderSupportRoles() {
         "backup-link-select": "backupLinkSharer", "backup-manager-select": "backupManager"
     };
 
-    const allPicks = Object.values(mapping).map(k => roles[k]);
-    // FILTER: Only show members NOT on leave this week
-    const presentMembers = members.filter(m => !roles.onLeave.includes(m.name) && m.name !== roles.presenter);
+    const presentMembers = members.filter(m => !roles.onLeave.includes(m.name));
+
+    // const allAssigned = Object.values(roles).flat();
 
     Object.entries(mapping).forEach(([id, key]) => {
         const sel = document.getElementById(id);
         if (!sel) return;
         sel.innerHTML = '<option value="">-- Select --</option>';
+
         presentMembers.forEach(m => {
+            const info = getAssignmentInfo(m.name);
             const opt = document.createElement("option");
             opt.value = m.name;
-            opt.textContent = m.name;
-            if (allPicks.includes(m.name) && roles[key] !== m.name) opt.disabled = true;
+
+            const suffix = info.count > 0 ? ` (${info.label} roles)` : "";
+            opt.textContent = `${m.name}`;
+
             if (roles[key] === m.name) opt.selected = true;
             sel.appendChild(opt);
         });
-        sel.onchange = (e) => {
+
+        const currentName = roles[key];
+        // const isDuplicate = currentName && allAssigned.filter(n => n === currentName).length > 1;
+        const info = getAssignmentInfo(currentName);
+
+        if (currentName && info.count > 1) {
+            sel.style.border = "2px solid #ffa000";
+            sel.style.backgroundColor = "#fff9c4";
+            sel.style.fontWeight = "bold";
+        } else {
+            sel.style.border = "1px solid #ddd";
+            sel.style.backgroundColor = "white";
+            sel.style.fontWeight = "normal";
+        }
+
+        sel.onchange = async (e) => {
             roles[key] = e.target.value;
-            save("batches", batches);
+            await save("batches", batches);
             refreshAll();
         };
     });
@@ -577,18 +514,17 @@ function renderSupportRoles() {
 
 function updateSubRoleDropdowns() {
     const config = [
-        // Affirmative Team Roles
-        { id: "spy-aff", list: roles.affirmative, curr: "spyAff", others: ["noteAff", "backupSpyAff", "backupNoteAff"] },
-        { id: "note-aff", list: roles.affirmative, curr: "noteAff", others: ["spyAff", "backupSpyAff", "backupNoteAff"] },
-        { id: "backup-spy-aff", list: roles.affirmative, curr: "backupSpyAff", others: ["spyAff", "noteAff", "backupNoteAff"] },
-        { id: "backup-note-aff", list: roles.affirmative, curr: "backupNoteAff", others: ["spyAff", "noteAff", "backupSpyAff"] },
-
-        // Negative Team Roles
-        { id: "spy-neg", list: roles.negative, curr: "spyNeg", others: ["noteNeg", "backupSpyNeg", "backupNoteNeg"] },
-        { id: "note-neg", list: roles.negative, curr: "noteNeg", others: ["spyNeg", "backupSpyNeg", "backupNoteNeg"] },
-        { id: "backup-spy-neg", list: roles.negative, curr: "backupSpyNeg", others: ["spyNeg", "noteNeg", "backupNoteNeg"] },
-        { id: "backup-note-neg", list: roles.negative, curr: "backupNoteNeg", others: ["spyNeg", "noteNeg", "backupSpyNeg"] }
+        { id: "spy-aff", list: roles.affirmative, curr: "spyAff" },
+        { id: "note-aff", list: roles.affirmative, curr: "noteAff" },
+        { id: "backup-spy-aff", list: roles.affirmative, curr: "backupSpyAff" },
+        { id: "backup-note-aff", list: roles.affirmative, curr: "backupNoteAff" },
+        { id: "spy-neg", list: roles.negative, curr: "spyNeg" },
+        { id: "note-neg", list: roles.negative, curr: "noteNeg" },
+        { id: "backup-spy-neg", list: roles.negative, curr: "backupSpyNeg" },
+        { id: "backup-note-neg", list: roles.negative, curr: "backupNoteNeg" }
     ];
+
+    const allAssigned = Object.values(roles).flat();
 
     config.forEach(cfg => {
         const sel = document.getElementById(cfg.id);
@@ -598,15 +534,16 @@ function updateSubRoleDropdowns() {
             const opt = document.createElement("option");
             opt.value = name;
             opt.textContent = name;
-            // Disable if name is picked in any other slot for this team
-            if (cfg.others.some(otherKey => roles[otherKey] === name)) opt.disabled = true;
             if (name === roles[cfg.curr]) opt.selected = true;
             sel.appendChild(opt);
         });
-        sel.onchange = (e) => {
+        const currentName = roles[cfg.curr];
+        const isDuplicate = currentName && allAssigned.filter(n => n === currentName).length > 1;
+        sel.style.backgroundColor = isDuplicate ? "#fff3cd" : "";
+        sel.onchange = async (e) => {
             roles[cfg.curr] = e.target.value;
-            save("batches", batches);
-            refreshAll();
+            await save("batches", batches);
+            renderTable();
         };
     });
 }
@@ -650,12 +587,29 @@ function checkArchiveStatus() {
     document.body.style.backgroundColor = isArchive ? "#e9ecef" : "#ffffff";
 }
 
-// --- BUTTON EVENTS ---
+function getAssignmentInfo(names) {
+    const assignedRoles = [];
 
-document.getElementById("new-batch-btn").onclick = () => {
+    Object.entries(roles).forEach(([key, value]) => {
+        if (typeof value === 'string' && value === name && key !== 'onLeave') {
+            assignedRoles.push(key);
+        }
+    });
+
+    if (roles.affirmative.includes(name)) assignedRoles.push('Aff Team');
+    if (roles.negative.includes(name)) assignedRoles.push('Neg Team');
+
+    return {
+        count: assignedRoles.length,
+        label: assignedRoles.join(", ")
+    };
+}
+
+// --- BUTTON EVENTS ---
+document.getElementById("new-batch-btn").onclick = async () => {
     const name = prompt("Enter Batch Name:");
     if (name) {
-        createNewBatch(name);
+        await createNewBatch(name);
         window.location.reload();
     }
 };
@@ -701,9 +655,12 @@ document.getElementById("copy-roles").onclick = () => {
     navigator.clipboard.writeText(text).then(() => alert("Assignments copied to clipboard."));
 };
 
-document.getElementById("save-roles").onclick = () => {
-    save("batches", batches);
-    alert("Saved Successfully!");
+document.getElementById("save-roles").onclick = async () => {
+    const btn = document.getElementById("save-roles");
+    btn.innerText = "Saving...";
+    await save("batches", batches);
+    btn.innerText = "Save";
+    alert("Saved to Cloud!");
 };
 
 document.getElementById("reset-roles").onclick = () => {
@@ -716,11 +673,23 @@ document.getElementById("reset-roles").onclick = () => {
 };
 
 // --- START APP ---
-function init() {
-    initializeData();
+async function init() {
+    const main = document.querySelector("main");
+    main.style.opacity = "0.5"; // Visual feedback while loading
+
+    // Load from Supabase
+    const cloudMembers = await load("members");
+    const cloudBatches = await load("batches");
+
+    members = cloudMembers || [];
+    batches = cloudBatches || [];
+
+    await initializeData();
     setupWeekButtons();
     renderBatchSelector();
-    // refreshAll is called inside setWeek(0) which is called in initializeData
+
+    main.style.opacity = "1";
+    console.log("Supabase Sync Complete.");
 }
 
 init();
