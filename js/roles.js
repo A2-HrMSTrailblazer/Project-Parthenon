@@ -7,8 +7,32 @@ let batches = [];
 let currentBatch;
 let currentWeekIdx = 0;
 let roles;
+const ROLE_LABELS = {
+    presenter: "Presenter",
+    host: "Host",
+    intro: "Introducer",
+    format: "Format Manager",
+    linkSharer: "Link Sharer",
+    manager: "Weekly Manager",
+    spyAff: "Spy Judge (Aff)",
+    noteAff: "Note-taker (Aff)",
+    spyNeg: "Spy Judge (Neg)",
+    noteNeg: "Note-taker (Neg)",
+    content: "Content Creator",
+    graphic: "Graphic Designer",
+    backupPresenter: "Backup Presenter",
+    backupHost: "Backup Host",
+    backupIntro: "Backup Intro",
+    backupFormat: "Backup Format",
+    backupLinkSharer: "Backup Link Sharer",
+    backupManager: "Backup Weekly Manager",
+    backupSpyAff: "Backup Spy Judge (Aff)",
+    backupNoteAff: "Backup Note-taker (Aff)",
+    backupSpyNeg: "Backup Spy Judge (Neg)",
+    backupNoteNeg: "Backup Note-taker (Neg)"
+};
 
-// --- INITIALIZATION (Async aware) ---
+// --- INITIALIZATION ---
 
 async function migrateData() {
     let needsSave = false;
@@ -20,13 +44,11 @@ async function migrateData() {
                     needsSave = true;
                 }
 
-                // Ensure 'onLeave' array exists
                 if (!week.roles.onLeave) {
                     week.roles.onLeave = [];
                     needsSave = true;
                 }
 
-                // Ensure all backup keys exist so UI doesn't crash
                 const empty = createEmptyRoles();
                 Object.keys(empty).forEach(key => {
                     if (week.roles[key] === undefined) {
@@ -40,7 +62,7 @@ async function migrateData() {
     if (needsSave) await save("batches", batches);
 }
 
-// Update your initialization to call the migration
+// Initialization to call the migration
 async function initializeData() {
     // If no batches exist, create the first one
     if (batches.length === 0) {
@@ -201,7 +223,7 @@ function renderBreakWeekUI() {
 
 function setupDropdown(elementId, roleKey, otherRoleKey) {
     const sel = document.getElementById(elementId);
-    const available = members.filter(m => m.availability === "available");
+    const available = members.filter(m => !roles.onLeave.includes(m.name));
 
     sel.innerHTML = '<option value="">-- Select Member --</option>';
     available.forEach(m => {
@@ -213,8 +235,9 @@ function setupDropdown(elementId, roleKey, otherRoleKey) {
         sel.appendChild(opt);
     });
 
-    sel.onchange = (e) => {
+    sel.onchange = async (e) => {
         roles[roleKey] = e.target.value;
+        await save("batches", batches);
         refreshAll();
     };
 }
@@ -259,7 +282,6 @@ function renderParticipantDashboard() {
     if (!dashboard) {
         dashboard = document.createElement("div");
         dashboard.id = "participant-dashboard";
-        // Inserts at the very top of the main content
         document.querySelector("main").prepend(dashboard);
     }
 
@@ -392,14 +414,13 @@ function renderPostSessionReport() {
     };
 }
 
-// 2. Team Checkboxes (Corrected to use the OnLeave system) 
+// 2. Team Checkboxes
 function renderTeamCheckboxes() {
     const affDiv = document.getElementById("aff-checkboxes");
     const negDiv = document.getElementById("neg-checkboxes");
     if (!affDiv || !negDiv) return;
     affDiv.innerHTML = ""; negDiv.innerHTML = "";
 
-    // FIX: Filter based on who is NOT on leave this week
     const presentMembers = members.filter(m => !roles.onLeave.includes(m.name));
 
     presentMembers.forEach(m => {
@@ -471,8 +492,6 @@ function renderSupportRoles() {
 
     const presentMembers = members.filter(m => !roles.onLeave.includes(m.name));
 
-    // const allAssigned = Object.values(roles).flat();
-
     Object.entries(mapping).forEach(([id, key]) => {
         const sel = document.getElementById(id);
         if (!sel) return;
@@ -480,29 +499,18 @@ function renderSupportRoles() {
 
         presentMembers.forEach(m => {
             const info = getAssignmentInfo(m.name);
+            // const rList = info.rolesList || [];
             const opt = document.createElement("option");
             opt.value = m.name;
 
-            const suffix = info.count > 0 ? ` (${info.label} roles)` : "";
-            opt.textContent = `${m.name}`;
+            const isAlreadyAssignedElseWhere = info.hasTask && roles[key] !== m.name;
+
+            opt.disabled = isAlreadyAssignedElseWhere;
+            opt.textContent = isAlreadyAssignedElseWhere ? `${m.name} (Assigned: ${info.label})` : m.name;
 
             if (roles[key] === m.name) opt.selected = true;
             sel.appendChild(opt);
         });
-
-        const currentName = roles[key];
-        // const isDuplicate = currentName && allAssigned.filter(n => n === currentName).length > 1;
-        const info = getAssignmentInfo(currentName);
-
-        if (currentName && info.count > 1) {
-            sel.style.border = "2px solid #ffa000";
-            sel.style.backgroundColor = "#fff9c4";
-            sel.style.fontWeight = "bold";
-        } else {
-            sel.style.border = "1px solid #ddd";
-            sel.style.backgroundColor = "white";
-            sel.style.fontWeight = "normal";
-        }
 
         sel.onchange = async (e) => {
             roles[key] = e.target.value;
@@ -524,26 +532,32 @@ function updateSubRoleDropdowns() {
         { id: "backup-note-neg", list: roles.negative, curr: "backupNoteNeg" }
     ];
 
-    const allAssigned = Object.values(roles).flat();
+    // const allAssigned = Object.values(roles).flat();
 
     config.forEach(cfg => {
         const sel = document.getElementById(cfg.id);
         if (!sel) return;
         sel.innerHTML = '<option value="">-- Select --</option>';
         cfg.list.forEach(name => {
+            const info = getAssignmentInfo(name);
+            // const rList = info.rolesList || [];
             const opt = document.createElement("option");
             opt.value = name;
-            opt.textContent = name;
+
+            const otherRoles = info.rolesList.filter(r => r !== cfg.curr);
+            const isBusy = otherRoles.length > 0;
+
+            opt.disabled = isBusy;
+            const otherFriendlyLabel = ROLE_LABELS[otherRoles[0]] || otherRoles[0];
+            opt.textContent = isBusy ? `${name} (Assigned: ${otherFriendlyLabel})` : name;
             if (name === roles[cfg.curr]) opt.selected = true;
             sel.appendChild(opt);
         });
-        const currentName = roles[cfg.curr];
-        const isDuplicate = currentName && allAssigned.filter(n => n === currentName).length > 1;
-        sel.style.backgroundColor = isDuplicate ? "#fff3cd" : "";
         sel.onchange = async (e) => {
             roles[cfg.curr] = e.target.value;
             await save("batches", batches);
             renderTable();
+            refreshAll();
         };
     });
 }
@@ -587,21 +601,32 @@ function checkArchiveStatus() {
     document.body.style.backgroundColor = isArchive ? "#e9ecef" : "#ffffff";
 }
 
-function getAssignmentInfo(names) {
-    const assignedRoles = [];
+function getAssignmentInfo(name) {
+    if (!name) return { count: 0, label: "", rolesList: [], hasTask: false };
+    const tasks = [];
+    const teams = [];
 
     Object.entries(roles).forEach(([key, value]) => {
-        if (typeof value === 'string' && value === name && key !== 'onLeave') {
-            assignedRoles.push(key);
+        if (key === 'onLeave') return;
+        if (key === 'affirmative'  || key === 'negative') {
+            if (value.includes(name)) teams.push(key === 'affirmative' ? 'Affirmative Team' : 'Negative Team');
+            return;
+        }
+
+        if ( value === name ) {
+            tasks.push(key);
         }
     });
 
-    if (roles.affirmative.includes(name)) assignedRoles.push('Aff Team');
-    if (roles.negative.includes(name)) assignedRoles.push('Neg Team');
+    const firstTaskKey = tasks[0];
+    const friendlyLabel = ROLE_LABELS[firstTaskKey] || firstTaskKey || "";
 
     return {
-        count: assignedRoles.length,
-        label: assignedRoles.join(", ")
+        count: tasks.length,
+        label: friendlyLabel,
+        rolesList: tasks,
+        teamList: teams,
+        hasTask: tasks.length > 0
     };
 }
 
