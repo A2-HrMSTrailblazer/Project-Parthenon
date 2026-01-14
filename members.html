@@ -7,33 +7,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
-    <header>
-      <h1>Members</h1>
-      <nav>
-        <a href="./index.html">Home</a>
-        <a href="./members.html">Members</a>
-        <a href="./roles.html">Roles</a>
-        <a href="./links.html">Links</a>
-      </nav>
-    </header>
+    <div id="content-wrapper">
+      <header>
+        <h1>Members</h1>
+      </header>
 
-    <main>
-      <h2>Facilitators</h2>
+      <main>
+        <h2>Facilitators</h2>
 
-      <table id="member-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Availability</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+        <table id="member-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Availability</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
 
-      <button id="add-member">Add Member</button>
-    </main>
+        <button id="add-member">Add Member</button>
+      </main>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/navbar.js"></script>
     <script src="./js/storage.js"></script>
     <script src="./js/members.js"></script>
   </body>

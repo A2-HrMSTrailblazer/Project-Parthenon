@@ -7,37 +7,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
-    <header>
-      <h1>Links</h1>
-      <nav>
-        <a href="./index.html">Home</a>
-        <a href="./members.html">Members</a>
-        <a href="./roles.html">Roles</a>
-        <a href="./links.html">Links</a>
-      </nav>
-    </header>
-    <main>
-      <h2>Resource Links</h2>
-      <div class="link-form">
-        <input id="link-title" placeholder="Title" type="text" />
-        <input id="link-url" placeholder="URL" type="text" />
-        <input id="link-category" placeholder="Category" type="text" />
-        <button id="add-link">Add Link</button>
-      </div>
+    <div id="content-wrapper">
+      <header>
+        <h1>Links</h1>
+      </header>
 
-      <table id="link-table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>URL</th>
-            <th>Category</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </main>
+      <main>
+        <section>
+          <div class="link-controls">
+            <input
+              type="text"
+              id="link-search"
+              placeholder="Search by title or category..."
+            />
+            <select id="category-filter">
+              <option value="all">All Categories</option>
+              <option value="Presentation">Presentation</option>
+              <option value="Meeting">Meeting</option>
+              <option value="Feedback">Feedback</option>
+              <option value="Intro">Intro</option>
+              <option value="Format">Format</option>
+            </select>
+          </div>
 
+          <div id="table-container">
+            <table id="link-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>URL</th>
+                  <th>Category</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/navbar.js"></script>
     <script src="./js/storage.js"></script>
     <script src="./js/links.js"></script>
   </body>

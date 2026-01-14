@@ -1,75 +1,647 @@
+/* --- Global & Layout --- */
+:root {
+  --primary: #333;
+  --success: #28a745;
+  --danger: #dc3545;
+  --warning: #ffc107;
+  --light-bg: #f8f9fa;
+  --border: #e0e0e0;
+  --sky-gradient: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+  --body-bg: #f0f7f9;
+  --card-bg: white;
+  --text-main: #2c3e50;
+  --accent-blue: #0083b0;
+  --sky-primary: #00b4db;
+  --sky-secondary: #0083b0;
+  --sky-light: #e0f7fa;
+  --sky-deep: #007692;
+}
+
 body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #f5f5f5;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-main);
+  background: linear-gradient(-45deg, #e0f7fa, #80deea, #b2ebf2, #e1f5fe);
+  background-size: 400% 400%;
+  animation: gradientFlow 15s ease infinite;
+  background-attachment: fixed;
 }
 
 header {
-    background: #333;
-    color: white;
-    padding: 12px 20px;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 1100px;
+  margin: 0 auto 30px auto;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  margin: 0;
+}
+
+/* --- Batch Control Panel --- */
+.batch-control-panel {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 15px 20px;
+  border-radius: 15px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(0, 180, 219, 0.1);
+  backdrop-filter: blur(5px);
+}
+
+#batch-select {
+  flex: 1; /* Makes the dropdown take available space */
+  max-width: 300px;
+  background: white;
+  font-weight: 600;
+  color: var(--sky-deep);
+}
+
+#new-batch-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+}
+
+#delete-batch-btn {
+  background: rgba(220, 53, 69, 0.1); /* Subtle red tint */
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  padding: 10px 20px;
+}
+
+#delete-batch-btn:hover {
+  background: #dc3545; /* Bright red on hover */
+  color: white;
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+}
+
+/* Week Selection Buttons */
+.week-selection-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.week-btn {
+  flex: 1;
+  background: white;
+  color: var(--sky-deep);
+  border: 1px solid rgba(0, 180, 219, 0.2);
+  font-weight: 600;
+  padding: 12px;
+}
+
+.week-btn:hover {
+  background: #f0f9ff;
+  border-color: var(--sky-primary);
 }
 
 nav a {
-    color: #ddd;
-    margin-right: 16px;
-    text-decoration: none;
+  color: #bbb;
+  margin-left: 20px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
 }
 
 nav a:hover {
-    color: white;
+  color: white;
 }
 
 main {
-    padding: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    margin-top: 1rem;
+/* --- Dashboard Sections (Cards) --- */
+section {
+  max-width: 1100px;
+  margin: 0 auto 25px auto;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 131, 176, 0.08);
+  border: 1px solid rgba(0, 180, 219, 0.1);
 }
 
-th, td {
-    padding: 10px;
-    border: 1px solid #ddd;
+section h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: var(--sky-deep);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px solid #f0f7f9;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+section h3::before {
+  content: "";
+  width: 4px;
+  height: 20px;
+  background: var(--sky-gradient);
+  border-radius: 4px;
+}
+
+h2,
+h3 {
+  margin-top: 0;
+  color: #111;
+}
+
+/* --- Inputs & Selects --- */
+select,
+input[type="text"] {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+section .support-role-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 1fr;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+section .support-role-row label {
+  font-weight: bold;
+  color: (var(--sky-deep));
+}
+
+.sub-role-group {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sub-role-group label {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--text-main);
+  margin-bottom: -5px;
+}
+
+.sub-role-group select {
+  padding: 6px;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+select:focus,
+input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* --- Team Columns --- */
+.team-container {
+  display: flex;
+  gap: 30px;
+}
+
+.team-box {
+  flex: 1;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.aff-box {
+  background: #f1fbf1;
+  border: 1px solid #c8e6c9;
+}
+.neg-box {
+  background: #fff5f5;
+  border: 1px solid #ffcdd2;
+}
+
+/* --- Buttons --- */
+.button-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px; /* Space above the buttons */
+  margin-bottom: 40px; /* Space between buttons and the table */
+  flex-wrap: wrap; /* Ensures they stack on mobile */
 }
 
 button {
-    margin-top: 10px;
-    padding: 8px 12px;
-    color: white;
-    background: #333;
-    border: none;
-    cursor: pointer;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  border-radius: 10px; /* Matches our card style */
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+#save-roles,
+#new-batch-btn,
+.btn-primary {
+  background: var(--sky-gradient);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 180, 219, 0.3);
+  transition: all 0.3s ease;
+}
+
+#save-roles:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 180, 219, 0.4);
+}
+
+input[type="text"]:focus,
+select:focus {
+  border-color: #00b4db;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 180, 219, 0.1);
+}
+
+#copy-roles {
+  background: #4facfe;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+#reset-roles {
+  background: #eceff1;
+  color: #607d8b;
+  border: 1px solid #cfd8dc;
+}
+
+#reset-roles:hover {
+  background: #f44336; /* Turns red only on hover to warn user */
+  color: white;
+  border-color: #f44336;
 }
 
 button:hover {
-    background: black;
+  transform: translateY(-3px);
+  cursor: pointer;
 }
 
-td button {
-    padding: 4px 10px;
-    background: #555;
+#new-batch-btn {
+  background: var(--success);
+  color: white;
+}
+#delete-batch-btn {
+  background: var(--danger);
+  color: white;
 }
 
-td button:hover {
-    background: #222;
+/* --- Tables --- */
+#table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 180, 219, 0.2);
 }
 
-select[multiple] {
-    height: 120px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: none;
 }
 
-.link-form input {
-    padding: 6px;
-    margin-right: 5px;
-    border: 1px solid #ccc;
+thead th {
+  background-color: #f0f9ff;
+  color: var(--sky-deep);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  padding: 15px;
+  border: none;
 }
 
-label:has(input:disabled) {
-    color: #aaa;
-    text-decoration: line-through;
-    cursor: not-allowed;
+tbody td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #f0f9ff;
+}
+
+tbody tr:hover {
+  background: #e3f9ff;
+}
+
+/* --- Attendance Grid --- */
+#attendance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.attendance-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #e0e7ee;
+  background: white;
+  border: 1px solid #ddd;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.attendance-label:has(input:checked) {
+  background: #e3f9ff;
+  border-color: #00b4db;
+  color: #007692;
+}
+
+.attendance-label:has(input:not(:checked)) {
+  background: #fdf2f2;
+  border-color: #facdcd;
+  color: #c0392b;
+  opacity: 0.7;
+}
+
+/* Sidebar Container */
+.sidebar {
+  height: 100vh;
+  width: 250px;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: -250px;
+  /* Skyblue-ish Gradient */
+  background: linear-gradient(
+    180deg,
+    rgba(0, 180, 219, 0.9) 0%,
+    rgba(0, 131, 176, 0.95) 100%
+  );
+  backdrop-filter: blur(15px);
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-top: 20px;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
+  border-right: none;
+}
+
+.sidebar.active {
+  left: 0;
+}
+
+.sidebar-header {
+  padding: 25px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 15px;
+}
+
+.sidebar-header h3 {
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Nav Links */
+.nav-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-links li a {
+  padding: 16px 25px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85); /* Off-white for better readability */
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.nav-links li a:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+  padding-left: 30px;
+}
+
+.nav-links li a.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.25);
+  border-left: 4px solid #ffffff; /* White indicator for the blue background */
+  font-weight: 600;
+  box-shadow: inset 4px 0 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Hamburger Button */
+.hamburger {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1001;
+  background: #00b4db;
+  background: linear-gradient(145deg, #00c6fb, #005bea);
+  color: white;
+  border: none;
+  font-size: 18px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 180, 219, 0.3);
+  transition: all 0.2s;
+}
+
+.hamburger:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 15px rgba(0, 180, 219, 0.4);
+}
+
+/* Content Wrapper Shift */
+#content-wrapper {
+  transition: margin-left 0.3s ease;
+  padding-top: 60px; /* Space for the floating hamburger */
+  padding: 20px;
+  padding-top: 80px;
+  min-height: 100vh;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(
+    0,
+    0,
+    0,
+    0.3
+  ); /* Slightly lighter to match the skyblue vibe */
+  backdrop-filter: blur(3px);
+  z-index: 999;
+  display: none;
+}
+
+.sidebar.active + #sidebar-overlay {
+  display: block;
+}
+
+/* --- Links Page Specific --- */
+
+/* 1. Layout & Table Structure */
+.link-controls {
+  margin-bottom: 20px;
+}
+
+#link-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Column Width Definitions */
+#link-table th:nth-child(1) {
+  width: 25%;
+} /* Title & Context */
+#link-table th:nth-child(2) {
+  width: 55%;
+} /* URL */
+#link-table th:nth-child(3) {
+  width: 20%;
+} /* Category Badge */
+
+/* 2. Search Input */
+#link-search {
+  padding-left: 40px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%230083b0" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: 12px center;
+}
+
+/* 3. URL & Copy Button Wrapper */
+.url-flex-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  max-width: 100%;
+}
+
+.truncated-url {
+  flex: 1;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--accent-blue);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.truncated-url:hover {
+  color: var(--sky-deep);
+  text-decoration: underline;
+}
+
+/* 4. Copy Button */
+.copy-icon-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: #f0f7f9;
+  color: var(--accent-blue);
+  border: 1px solid #d0e0e5;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-icon-btn:hover {
+  background: var(--sky-primary);
+  color: white;
+  border-color: var(--sky-primary);
+  transform: scale(1.1);
+}
+
+.copy-icon-btn:active {
+  transform: scale(0.95);
+}
+
+.copy-icon-btn.copied {
+  background: var(--success) !important;
+  color: white !important;
+  border-color: var(--success) !important;
+}
+
+/* 5. Category Badges */
+.category-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* 6. Link Controls (Search & Filter) */
+.link-controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+#link-search {
+  flex: 3; /* Takes up more space */
+}
+
+#category-filter {
+  flex: 1; /* Smaller dropdown */
+  min-width: 150px;
+  background-color: white;
+  font-weight: 600;
+  color: var(--sky-deep);
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

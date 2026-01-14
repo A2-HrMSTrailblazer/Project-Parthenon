@@ -7,260 +7,165 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
-    <header>
-      <h1>Weekly Roles</h1>
-      <nav>
-        <a href="./index.html">Home</a>
-        <a href="./members.html">Members</a>
-        <a href="./roles.html">Roles</a>
-        <a href="./links.html">Links</a>
-      </nav>
-    </header>
+    <div id="content-wrapper">
+      <header>
+        <h1>Weekly Roles</h1>
+      </header>
 
-    <main>
-      <div
-        id="batch-control-panel"
-        style="
-          background: #f4f4f4;
-          padding: 15px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        "
-      >
-        <div>
-          <label>Viewing: </label>
-          <select id="batch-select" style="padding: 5px"></select>
-        </div>
-        <button
-          id="new-batch-btn"
-          style="
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-          "
-        >
-          + Start New Batch
-        </button>
-        <button
-          id="delete-batch-btn"
-          style="
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 10px;
-          "
-        >
-          Delete This Batch
-        </button>
-      </div>
-      <div
-        id="week-switcher"
-        style="
-          margin-bottom: 20px;
-          display: flex;
-          gap: 10px;
-          align-items: center;
-        "
-      >
-        <span>Select Week:</span>
-        <button type="button" class="week-btn" data-week="0">Week 1</button>
-        <button type="button" class="week-btn" data-week="1">Week 2</button>
-        <button type="button" class="week-btn" data-week="2">Week 3</button>
-        <button type="button" class="week-btn" data-week="3">Week 4</button>
-        <button type="button" class="week-btn" data-week="4">Break Week</button>
-      </div>
-      <h2>Role Assignments</h2>
-
-      <section>
-        <h3>1. Presenter</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
+      <main>
+        <div class="batch-control-panel">
           <div>
-            <label>Primary Presenter:</label><br />
-            <select id="presenter-select" style="width: 100%"></select>
+            <select id="batch-select"></select>
           </div>
-          <div>
-            <label>Backup Presenter:</label><br />
-            <select id="backup-presenter-select" style="width: 100%"></select>
+          <button id="new-batch-btn">+ Start New Batch</button>
+          <button id="delete-batch-btn">Delete This Batch</button>
+        </div>
+        <div class="week-selection-group">
+          <button type="button" class="week-btn" data-week="0">Week 1</button>
+          <button type="button" class="week-btn" data-week="1">Week 2</button>
+          <button type="button" class="week-btn" data-week="2">Week 3</button>
+          <button type="button" class="week-btn" data-week="3">Week 4</button>
+          <button type="button" class="week-btn" data-week="4">Break Week</button>
+        </div>
+        <h2>Role Assignments</h2>
+
+        <section>
+          <h3>1. Presenter</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
+            <div>
+              <label>Primary Presenter:</label><br />
+              <select id="presenter-select" style="width: 100%"></select>
+            </div>
+            <div>
+              <label>Backup Presenter:</label><br />
+              <select id="backup-presenter-select" style="width: 100%"></select>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section>
-        <h3>2. Support Roles</h3>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 150px 1fr 1fr;
-            gap: 10px;
-            align-items: center;
-            font-weight: bold;
-            margin-bottom: 10px;
-          "
-        >
-          <div>Role</div>
-          <div>Primary</div>
-          <div>Backup</div>
-        </div>
+        <section>
+          <h3>2. Support Roles</h3>
+          <div class="support-role-row">
+            <div>Role</div>
+            <div>Primary</div>
+            <div>Backup</div>
+          </div>
 
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 150px 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-          "
-        >
-          <label>Host:</label>
-          <select id="host-select"></select>
-          <select id="backup-host-select"></select>
-        </div>
+          <div class="support-role-row">
+            <label>Host:</label>
+            <select id="host-select"></select>
+            <select id="backup-host-select"></select>
+          </div>
 
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 150px 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-          "
-        >
-          <label>Intro:</label>
-          <select id="intro-select"></select>
-          <select id="backup-intro-select"></select>
-        </div>
+          <div class="support-role-row">
+            <label>Intro:</label>
+            <select id="intro-select"></select>
+            <select id="backup-intro-select"></select>
+          </div>
 
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 150px 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-          "
-        >
-          <label>Format:</label>
-          <select id="format-select"></select>
-          <select id="backup-format-select"></select>
-        </div>
+          <div class="support-role-row">
+            <label>Format:</label>
+            <select id="format-select"></select>
+            <select id="backup-format-select"></select>
+          </div>
 
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 150px 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-          "
-        >
-          <label>Link Sharer:</label>
-          <select id="link-select"></select>
-          <select id="backup-link-select"></select>
-        </div>
+          <div class="support-role-row">
+            <label>Link Sharer:</label>
+            <select id="link-select"></select>
+            <select id="backup-link-select"></select>
+          </div>
 
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 150px 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-          "
-        >
-          <label>Weekly Manager:</label>
-          <select id="manager-select"></select>
-          <select id="backup-manager-select"></select>
-        </div>
-      </section>
+          <div class="support-role-row">
+            <label>Reminder:</label>
+            <select id="reminder-select"></select>
+            <select id="backup-reminder-select"></select>
+          </div>
 
-      <section>
-        <h3>3. Assign Teams</h3>
-        <div style="display: flex; gap: 40px">
-          <div style="flex: 1">
-            <h4 style="color: green">✅ Affirmative Team</h4>
-            <div id="aff-checkboxes"></div>
+          <div class="support-role-row">
+            <label>Weekly Manager:</label>
+            <select id="manager-select"></select>
+            <select id="backup-manager-select"></select>
+          </div>
 
-            <div
-              style="
-                margin-top: 15px;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-              "
-            >
-              <div>
-                <label style="font-size: 0.85em">Spy (Aff):</label>
-                <select id="spy-aff" style="width: 100%"></select>
+          <div class="support-role-row">
+            <label>Attendance Taker:</label>
+            <select id="attendance-select"></select>
+            <select id="backup-attendance-select"></select>
+          </div>
+        </section>
+
+        <section>
+          <h3>3. Assign Teams</h3>
+          <div class="team-container">
+            <div class="team-box aff-box">
+              <h4 style="color: green">✅ Affirmative Team</h4>
+              <div id="aff-checkboxes"></div>
+              <div class="sub-role-group">
+                <label>Spy Judge:</label>
+                <select id="spy-aff"></select>
+
+                <label>Note-taker:</label>
+                <select id="note-aff"></select>
+
+                <label>Backup Note:</label>
+                <select id="backup-note-aff"></select>
               </div>
-              <div>
-                <label style="font-size: 0.85em">Backup Spy:</label>
-                <select id="backup-spy-aff" style="width: 100%"></select>
-              </div>
-              <div>
-                <label style="font-size: 0.85em">Note Taker (Aff):</label>
-                <select id="note-aff" style="width: 100%"></select>
-              </div>
-              <div>
-                <label style="font-size: 0.85em">Backup Note:</label>
-                <select id="backup-note-aff" style="width: 100%"></select>
+            </div>
+
+            <div class="team-box neg-box">
+              <h4 style="color: red">❌ Negative Team</h4>
+              <div id="neg-checkboxes"></div>
+              <div class="sub-role-group">
+                <label>Spy Judge:</label>
+                <select id="spy-neg"></select>
+
+                <label>Note-taker:</label>
+                <select id="note-neg"></select>
+
+                <label>Backup Note:</label>
+                <select id="backup-note-neg"></select>
               </div>
             </div>
           </div>
+        </section>
 
-          <div style="flex: 1">
-            <h4 style="color: red">❌ Negative Team</h4>
-            <div id="neg-checkboxes"></div>
+        <section id="weekly-link-container-wrapper">
+          <h3>4. Master Links</h3>
+          <div
+            id="weekly-link-container"
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              background: #fffcf5;
+              padding: 20px;
+              border-radius: 8px;
+              border: 1px solid #ffe0b2;
+            "
+          ></div>
+        </section>
 
-            <div
-              style="
-                margin-top: 15px;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-              "
-            >
-              <div>
-                <label style="font-size: 0.85em">Spy (Neg):</label>
-                <select id="spy-neg" style="width: 100%"></select>
-              </div>
-              <div>
-                <label style="font-size: 0.85em">Backup Spy:</label>
-                <select id="backup-spy-neg" style="width: 100%"></select>
-              </div>
-              <div>
-                <label style="font-size: 0.85em">Note Taker (Neg):</label>
-                <select id="note-neg" style="width: 100%"></select>
-              </div>
-              <div>
-                <label style="font-size: 0.85em">Backup Note:</label>
-                <select id="backup-note-neg" style="width: 100%"></select>
-              </div>
-            </div>
-          </div>
+        <div class="button-group">
+          <button type="button" id="save-roles">Save</button>
+          <button type="button" id="copy-roles">Copy to Clipboard</button>
+          <button type="button" id="reset-roles">Reset</button>
         </div>
-      </section>
 
-      <button type="button" id="save-roles">Save</button>
-      <button type="button" id="copy-roles">Copy to Clipboard</button>
-      <button type="button" id="reset-roles">Reset</button>
-
-      <div id="table-container">
-        <table id="assignment-table">
-          <thead>
-            <tr>
-              <th>Role</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </main>
+        <div id="table-container">
+          <table id="assignment-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/navbar.js"></script>
     <script src="./js/storage.js"></script>
     <script src="./js/roles.js"></script>
   </body>
