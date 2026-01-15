@@ -1,9 +1,11 @@
 function loadSidebar() {
-    const navHTML = `
-      <button id="menu-toggle" class="hamburger">☰</button>
+  const navHTML = `
       <div id="sidebar-overlay" class="overlay"></div>
-      <nav id="sidebar" class="sidebar">
-        <div class="sidebar-header"><h3>Weekly Roles</h3></div>
+      <nav id="sidebar" class="sidebar active">
+        <div class="sidebar-header">
+            <h3>Weekly Roles</h3>
+            <button id="menu-toggle" class="nav-collapse-btn">☰</button>
+        </div>
         <ul class="nav-links">
             <li><a href="./index.html" id="nav-home">🏠 &nbsp; Home</a></li>
             <li><a href="./members.html" id="nav-members">👥 &nbsp; Members</a></li>
@@ -11,28 +13,46 @@ function loadSidebar() {
             <li><a href="./links.html" id="nav-links">🔗 &nbsp; Links</a></li>
         </ul>
       </nav>
+      <button id="menu-open" class="hamburger" style="display:none;">☰</button>
     `;
 
-    // Insert it at the very start of the body
-    document.body.insertAdjacentHTML('afterbegin', navHTML);
+  document.body.insertAdjacentHTML('afterbegin', navHTML);
 
-    // Setup Toggle Logic
-    const menuBtn = document.getElementById('menu-toggle');
-    const sidebar = document.getElementById('sidebar');
+  const sidebar = document.getElementById('sidebar');
+  const menuToggle = document.getElementById('menu-toggle');
+  const menuOpen = document.getElementById('menu-open');
+  const overlay = document.getElementById('sidebar-overlay');
+  const body = document.body;
 
-    menuBtn.onclick = (e) => {
-        sidebar.classList.toggle('active');
-        menuBtn.innerText = sidebar.classList.contains('active') ? '✕' : '☰';
-        e.stopPropagation();
-    };
+  // Start with body shifted
+  body.classList.add('sidebar-open');
 
-    // Auto-highlight the active page
-    const currentPage = window.location.pathname.split("/").pop();
-    if (currentPage === "index.html" || currentPage === "") document.getElementById('nav-home').classList.add('active');
-    if (currentPage === "members.html") document.getElementById('nav-members').classList.add('active');
-    if (currentPage === "roles.html") document.getElementById('nav-roles').classList.add('active');
-    if (currentPage === "links.html") document.getElementById('nav-links').classList.add('active');
+  const toggleSidebar = (forceClose = false) => {
+    const isOpen = sidebar.classList.contains('active');
+    
+    if (isOpen || forceClose) {
+      sidebar.classList.remove('active');
+      body.classList.remove('sidebar-open');
+      menuOpen.style.display = "flex"; // Show floating button to reopen
+      overlay.classList.remove('active');
+    } else {
+      sidebar.classList.add('active');
+      body.classList.add('sidebar-open');
+      menuOpen.style.display = "none"; // Hide floating button
+      // Only show overlay on mobile screens
+      if (window.innerWidth <= 768) overlay.classList.add('active');
+    }
+  };
+
+  menuToggle.onclick = () => toggleSidebar();
+  menuOpen.onclick = () => toggleSidebar();
+  overlay.onclick = () => toggleSidebar(true);
+
+  // Auto-highlight logic
+  const currentPage = window.location.pathname.split("/").pop();
+  const pages = { "": "nav-home", "index.html": "nav-home", "members.html": "nav-members", "roles.html": "nav-roles", "links.html": "nav-links" };
+  const activeId = pages[currentPage];
+  if (activeId) document.getElementById(activeId).classList.add('active');
 }
 
-// Run it immediately
 loadSidebar();

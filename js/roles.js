@@ -288,7 +288,7 @@ function renderBatchSelector() { const sel = document.getElementById('batch-sele
 
 function setupWeekButtons() { document.querySelectorAll('.week-btn').forEach(btn => btn.onclick = e => setWeek(parseInt(e.target.dataset.week))); }
 
-function checkArchiveStatus() { const isArchive = currentBatch?.status === 'archive'; const inputs = document.querySelectorAll('select, input, button'); inputs.forEach(el => { if (el.id !== 'batch-select' && el.id !== 'new-batch-btn' && !el.classList.contains('week-btn') && el.id !== 'delete-batch-btn') el.disabled = isArchive; }); document.body.style.backgroundColor = isArchive ? '#e9ecef' : '#ffffff'; }
+function checkArchiveStatus() { const isArchive = currentBatch?.status === 'archive'; if(!document.querySelector('main')) return; const inputs = document.querySelector('main').querySelectorAll('select, input, button'); inputs.forEach(el => { if (el.id !== 'batch-select' && el.id !== 'new-batch-btn' && !el.classList.contains('week-btn') && el.id !== 'delete-batch-btn') el.disabled = isArchive; }); document.body.style.backgroundColor = isArchive ? '#e9ecef' : '#ffffff'; }
 
 function getAssignmentInfo(name) { if (!name) return { count: 0, label: '', rolesList: [], hasTask: false }; const tasks = []; const teams = []; Object.entries(roles).forEach(([key, value]) => { if (key === 'onLeave') return; if (key === 'affirmative' || key === 'negative') { if (value.includes(name)) teams.push(key === 'affirmative' ? 'Affirmative Team' : 'Negative Team'); return; } if (value === name) tasks.push(key); }); const firstTaskKey = tasks[0]; const friendlyLabel = ROLE_LABELS[firstTaskKey] || firstTaskKey || ''; return { count: tasks.length, label: friendlyLabel, rolesList: tasks, teamList: teams, hasTask: tasks.length > 0 }; }
 

@@ -27,6 +27,88 @@ body {
   background-attachment: fixed;
 }
 
+/* --- Dashboard Layout Logic --- */
+body.sidebar-open #content-wrapper {
+  margin-left: 250px; /* Shifts content when sidebar is open */
+  transition: margin-left 0.3s ease;
+}
+
+#content-wrapper {
+  transition: margin-left 0.3s ease;
+  padding: 20px;
+  padding-top: 40px;
+}
+
+/* --- Integrated Sidebar Button --- */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+}
+
+.nav-collapse-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.nav-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* --- Floating Button (Only visible when sidebar closed) --- */
+.hamburger {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1001;
+  background: var(--sky-gradient);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 180, 219, 0.3);
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+  body.sidebar-open #content-wrapper {
+    margin-left: 0; /* Don't shift content on mobile */
+  }
+  .sidebar.active {
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Ensure the nav is always on top and interactive */
+#sidebar,
+.navbar,
+nav {
+  z-index: 998 !important;
+  pointer-events: auto !important;
+}
+
+/* If you have a dimming effect on the main content */
+body.is-archived main {
+  opacity: 0.8;
+  pointer-events: none; /* This disables the content but NOT the body/nav */
+}
+
+.hamburger {
+  z-index: 1000;
+}
+
 header {
   padding: 1rem 2rem;
   display: flex;
@@ -388,7 +470,7 @@ tbody tr:hover {
   height: 100vh;
   width: 250px;
   position: fixed;
-  z-index: 1000;
+  z-index: 998;
   top: 0;
   left: -250px;
   /* Skyblue-ish Gradient */
@@ -498,15 +580,17 @@ tbody tr:hover {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(
-    0,
-    0,
-    0,
-    0.3
-  ); /* Slightly lighter to match the skyblue vibe */
-  backdrop-filter: blur(3px);
-  z-index: 999;
-  display: none;
+  background: rgba(0, 0, 0, 0.3); /* Dim the background slightly */
+  backdrop-filter: blur(2px); /* Modern glass effect */
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 998; /* Just below sidebar */
+}
+
+.overlay.active {
+  opacity: 1;
+  visibility: visible;
 }
 
 .sidebar.active + #sidebar-overlay {
@@ -701,6 +785,45 @@ tbody tr:hover {
 .delete-member-btn:hover {
   background: #dc3545;
   color: white;
+}
+
+/* 1. Hide Hamburger when Sidebar is active (on non-home pages) */
+.sidebar.active ~ .hamburger {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* 2. Home Page Specific Layout (Always On) */
+body.home-sidebar .sidebar {
+  left: 0; /* Always visible */
+  box-shadow: none;
+  border-right: 1px solid rgba(0, 180, 219, 0.2);
+}
+
+body.home-sidebar .hamburger,
+body.home-sidebar .overlay {
+  display: none !important; /* No need for toggle or overlay on home */
+}
+
+body.home-sidebar #content-wrapper {
+  margin-left: 250px;
+}
+
+/* 3. Mobile Responsiveness for Home Page */
+@media (max-width: 768px) {
+  body.home-sidebar .sidebar {
+    left: -250px;
+  }
+  body.home-sidebar .sidebar.active {
+    left: 0;
+  }
+  body.home-sidebar .hamburger {
+    display: flex !important;
+  }
+  body.home-sidebar #content-wrapper {
+    margin-left: 0;
+  }
 }
 
 @keyframes gradientFlow {
