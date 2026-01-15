@@ -40,20 +40,47 @@ function renderMembers() {
     if (!tableBody) return;
 
     tableBody.innerHTML = "";
-    members.forEach((m, index) => {
+
+    // Only show members who are NOT archived in the management list
+    const activeMembers = members.filter(m => !m.archived);
+
+    activeMembers.forEach((m) => {
+        const firstLetter = m.name.charAt(0);
         const row = document.createElement("tr");
+
         row.innerHTML = `
-            <td><strong>${m.name}</strong></td>
-            <td><span style="color: #2e7d32; font-size: 0.9em; background: #e8f5e9; padding: 2px 8px; border-radius: 10px;">Facilitator</span></td>
-            <td>
-                <button class="delete-member-btn" onclick="deleteMember(${index})" 
-                        style="color: #d32f2f; border: 1px solid #d32f2f; background: none; border-radius: 4px; cursor: pointer; padding: 4px 8px;">
-                    Remove
-                </button>
-            </td>
-        `;
+                <td>
+                    <div class="member-identity">
+                        <div class="avatar-circle">${firstLetter}</div>
+                        <strong>${m.name}</strong>
+                    </div>
+                </td>
+                <td>
+                    <span class="status-badge status-active">Active Facilitator</span>
+                </td>
+                <td style="text-align: right;">
+                    <button class="delete-member-btn" onclick="archiveMember('${m.name}')">
+                        Remove
+                    </button>
+                </td>
+            `;
         tableBody.appendChild(row);
     });
+}
+
+/**
+ * ARCHIVE MEMBER (Soft Delete)
+ */
+async function archiveMember(nameToArchive) {
+    if (confirm(`Archive ${nameToArchive}? They will stay in past records but won't show up for new assignments.`)) {
+        // Find the member by name and set archived to true
+        members = members.map(m =>
+            m.name === nameToArchive ? { ...m, archived: true } : m
+        );
+
+        await save("members", members);
+        renderMembers();
+    }
 }
 
 /**

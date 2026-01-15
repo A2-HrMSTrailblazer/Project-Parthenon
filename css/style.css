@@ -634,6 +634,54 @@ tbody tr:hover {
   color: var(--sky-deep);
 }
 
+/* Member Management Styling */
+.member-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sky-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-active {
+  background: #e3f9f1;
+  color: #28a745;
+  border: 1px solid #c3e6cb;
+}
+
+.delete-member-btn {
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  background: transparent;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-member-btn:hover {
+  background: #dc3545;
+  color: white;
+}
+
 @keyframes gradientFlow {
   0% {
     background-position: 0% 50%;
