@@ -27,9 +27,11 @@ const ROLE_LABELS = {
     attendanceTaker: "Attendance Taker",
     backupAttendanceTaker: "Backup Attendance",
     spyAff: "Spy Judge (Aff)",
-    noteAff: "Note-taker (Aff)", backupNoteAff: "Backup Note-taker (Aff)",
+    noteAff: "Note-taker (Aff)",
+    backupNoteAff: "Backup Note-taker (Aff)",
     spyNeg: "Spy Judge (Neg)",
-    noteNeg: "Note-taker (Neg)", backupNoteNeg: "Backup Note-taker (Neg)",
+    noteNeg: "Note-taker (Neg)",
+    backupNoteNeg: "Backup Note-taker (Neg)",
     content: "Break Week Content",
     graphic: "Break Week Graphic"
 };
@@ -45,22 +47,19 @@ function createEmptyRoles() {
         format: "", backupFormat: "",
         linkSharer: "", backupLinkSharer: "",
         manager: "", backupManager: "",
-
         reminder: "", backupReminder: "",
         attendanceTaker: "HR", backupAttendanceTaker: "",
-
         affirmative: [],
         spyAff: "", noteAff: "", backupNoteAff: "",
         negative: [],
         spyNeg: "", noteNeg: "", backupNoteNeg: "",
-
         masterLinks: {
             zoomLink: "", membershipForm: "", topicSlides: "",
             introSlides: "", formatSlides: "", zoomBackground: "",
             feedbackForm: "", sotdLink: ""
         },
-
-        onLeave: []
+        onLeave: [],
+        content: "", graphic: "" // For Break Week
     };
 }
 
@@ -103,6 +102,25 @@ async function initializeData() {
     setWeek(0);
 }
 
+function validationCleanup() {
+    const onLeave = roles.onLeave || [];
+    
+    // Check every role key
+    Object.keys(roles).forEach(key => {
+        if (key === 'onLeave' || key === 'masterLinks') return;
+
+        // If it's a single string role (like presenter, host, etc.)
+        if (typeof roles[key] === 'string' && onLeave.includes(roles[key])) {
+            roles[key] = ""; 
+        }
+
+        // If it's a team array (affirmative/negative)
+        if (Array.isArray(roles[key])) {
+            roles[key] = roles[key].filter(name => !onLeave.includes(name));
+        }
+    });
+}
+
 // --------------------------
 // Core UI controls
 // --------------------------
@@ -111,19 +129,28 @@ function setWeek(idx) {
     currentWeekIdx = idx;
     roles = currentBatch.weeks[idx].roles;
 
+    // Update Header Display
+    const display = document.getElementById('current-selection-display');
+    if (display) display.innerText = `${currentBatch.id} — Week ${idx + 1} ${idx === 4 ? '(Break Week)' : ''}`;
+
+    // Toggle Visibility for Break Week vs Normal Week
     const isBreakWeek = (idx === 4);
-    document.querySelectorAll('section').forEach(sec => sec.style.display = isBreakWeek ? "none" : "block");
-    document.querySelectorAll('.week-btn').forEach((btn, i) => {
-        if (i === idx) {
-            btn.style.background = "var(--sky-gradient)";
-            btn.style.color = "white";
-            btn.style.borderColor = "transparent";
+    document.querySelectorAll('section').forEach((sec, i) => {
+        // Only hide standard role sections on break week
+        if (isBreakWeek && i > 0 && sec.id !== 'break-week-container') {
+            sec.style.display = 'none';
+        } else if (!isBreakWeek && sec.id === 'break-week-container') {
+            sec.style.display = 'none';
         } else {
-            btn.style.background = "white";
-            btn.style.color = "var(--sky-deep)";
-            btn.style.borderColor = "rgba(0, 180, 219, 0.2)";
+            sec.style.display = 'block';
         }
     });
+
+    // Update Button Styling
+    document.querySelectorAll('.week-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === idx);
+    });
+
     refreshAll();
 }
 
@@ -131,18 +158,25 @@ function refreshAll() {
     if (!members || members.length === 0) return;
     const isBreakWeek = (currentWeekIdx === 4);
 
-    ['#break-week-container', '#topic-container', '#session-report', '#attendance-container', '#participant-dashboard'].forEach(sel => { const el = document.querySelector(sel); if (el) el.remove(); });
+    // Clean up dynamic containers
+    const dynamicIds = ['#break-week-container', '#topic-container', '#attendance-container'];
+    dynamicIds.forEach(id => document.querySelector(id)?.remove());
 
+    validationCleanup();
     renderParticipantDashboard();
-    if (isBreakWeek) renderBreakWeekUI();
-    else {
+
+    if (isBreakWeek) {
+        renderBreakWeekUI();
+    } else {
         renderTopicInput();
         renderAttendanceToggles();
-        if (document.getElementById('presenter-select')) {
-            renderPresenterList(); renderTeamCheckboxes(); updateSubRoleDropdowns(); renderSupportRoles(); renderWeeklyLinkEditor();
-        }
-        renderPostSessionReport();
+        renderPresenterList();
+        renderTeamCheckboxes();
+        updateSubRoleDropdowns();
+        renderSupportRoles();
+        renderWeeklyLinkEditor();
     }
+
     renderTable();
     checkArchiveStatus();
 }
@@ -225,51 +259,124 @@ window.deleteWeeklyLink = async (i) => {
 
 function renderBreakWeekUI() {
     let container = document.getElementById('break-week-container');
-    if (!container) { container = document.createElement('div'); container.id = 'break-week-container'; document.querySelector('h2')?.after(container); }
-    container.innerHTML = `\n        <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #90caf9;">\n            <h3 style="margin-top:0; color: #0d47a1">Break Week</h3>\n            <div style="margin-bottom: 15px">\n                <label><strong>Content:</strong></label><br>\n                <select id="content-select" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc;"></select>\n            </div>\n            <div>\n                <label><strong>Graphic:</strong></label><br>\n                <select id="graphic-select" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc;"></select>\n            </div>\n        </div>\n    `;
-    setupDropdown('content-select', 'content', 'graphic'); setupDropdown('graphic-select', 'graphic', 'content');
+    if (!container) {
+        container = document.createElement('section');
+        container.id = 'break-week-container';
+        document.querySelector('.control-card')?.after(container);
+    }
+    container.innerHTML = `
+        <h3>🏝️ Break Week Coordination</h3>
+        <div class="grid-2-col">
+            <div class="form-group">
+                <label>Content Creator:</label>
+                <select id="content-select"></select>
+            </div>
+            <div class="form-group">
+                <label>Graphic Designer:</label>
+                <select id="graphic-select"></select>
+            </div>
+        </div>
+    `;
+    setupDropdown('content-select', 'content', 'graphic');
+    setupDropdown('graphic-select', 'graphic', 'content');
 }
 
-function setupDropdown(elementId, roleKey, otherRoleKey) { const sel = document.getElementById(elementId); if (!sel) return; const availableMembers = members.filter(m => !m.archived); sel.innerHTML = '<option value="">-- Select Member --</option>'; availableMembers.forEach(m => { const opt = document.createElement('option'); opt.value = m.name; opt.textContent = m.name; if (m.name === roles[otherRoleKey] && m.name !== '') opt.disabled = true; if (m.name === roles[roleKey]) opt.selected = true; sel.appendChild(opt); }); sel.onchange = async (e) => { roles[roleKey] = e.target.value; await save('batches', batches); refreshAll(); } }
+function setupDropdown(elementId, roleKey, otherRoleKey) {
+    const sel = document.getElementById(elementId);
+    if (!sel) return;
+    const availableMembers = members.filter(m => !m.archived);
+    sel.innerHTML = '<option value="">-- Select Member --</option>';
+    availableMembers.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.name;
+        opt.textContent = m.name;
+        if (m.name === roles[otherRoleKey] && m.name !== '') opt.disabled = true;
+        if (m.name === roles[roleKey]) opt.selected = true;
+        sel.appendChild(opt);
+    });
+    sel.onchange = async (e) => {
+        roles[roleKey] = e.target.value;
+        await save('batches', batches);
+        refreshAll();
+    };
+}
 
 function renderTopicInput() {
     let container = document.getElementById('topic-container');
     if (!container) {
-        container = document.createElement('div');
+        container = document.createElement('section');
         container.id = 'topic-container';
-        document.querySelector('h2')?.after(container);
+        document.querySelector('.control-card')?.after(container);
     }
 
-    // We removed the Main Presentation Link input from here 
-    // because it now lives in the Master Links section
     container.innerHTML = `
-        <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 5px solid #007bff;">
-            <label><strong>Debate Topic:</strong></label><br>
-            <input type="text" id="topic-field" placeholder="Enter debate topic here..." 
-                   style="width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" 
-                   value="${currentBatch.weeks[currentWeekIdx].topic || ''}">
-        </div>
+        <h3>📖 Session Topic</h3>
+        <input type="text" id="topic-field" placeholder="Enter debate topic..." 
+               value="${currentBatch.weeks[currentWeekIdx].topic || ''}">
     `;
 
-    const topicField = document.getElementById('topic-field');
-    if (topicField) {
-        topicField.oninput = e => {
-            currentBatch.weeks[currentWeekIdx].topic = e.target.value;
-            save('batches', batches);
-        };
-    }
+    document.getElementById('topic-field').oninput = e => {
+        currentBatch.weeks[currentWeekIdx].topic = e.target.value;
+        save('batches', batches);
+    };
 }
 
 function renderParticipantDashboard() { const totalMembers = members.length; const facilitatorsPresent = totalMembers - (roles?.onLeave?.length || 0); const guestCount = currentBatch.weeks[currentWeekIdx].audienceCount || 0; const totalAttendance = facilitatorsPresent + guestCount; let dashboard = document.getElementById('participant-dashboard'); if (!dashboard) { dashboard = document.createElement('div'); dashboard.id = 'participant-dashboard'; document.querySelector('main')?.prepend(dashboard); } dashboard.innerHTML = `\n        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px;">\n            <div style="background: #e3f2fd; border: 1px solid #2196f3; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #0d47a1; font-weight: bold; text-transform: uppercase;">Total Attendance</span>\n                <div style="font-size: 1.6em; font-weight: bold; color: #0d47a1;">${totalAttendance}</div>\n            </div>\n            <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #495057; font-weight: bold; text-transform: uppercase;">Facilitators</span>\n                <div style="font-size: 1.6em; font-weight: bold;">${facilitatorsPresent}</div>\n            </div>\n            <div style="background: #fff3e0; border: 1px solid #ffe0b2; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #e65100; font-weight: bold; text-transform: uppercase;">Guest Audience</span>\n                <div style="font-size: 1.6em; font-weight: bold; color: #e65100;">${guestCount}</div>\n            </div>\n        </div>\n    `; }
 
-function renderAttendanceToggles() { let container = document.createElement('div'); container.id = 'attendance-container'; const topicContainer = document.querySelector('#topic-container'); if (topicContainer) topicContainer.after(container); const assignedNames = getAllAssignedNames(); container.innerHTML = `\n        <div style="background: #fdfdfe; border: 1px solid #e0e0e0; padding: 15px; border-radius: 8px; margin-bottom: 20px;">\n            <h4 style="margin:0 0 10px 0;">Attendance (Week ${currentWeekIdx + 1})</h4>\n            <div id="attendance-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">\n            </div>\n        </div>\n    `; const grid = document.getElementById('attendance-grid'); members.filter(m => !m.archived).forEach(m => { const isCurrentlyOnLeave = (roles.onLeave || []).includes(m.name); const isAssigned = assignedNames.includes(m.name); const label = document.createElement('label'); label.className = 'attendance-label'; label.style.cssText = `padding:8px; border-radius:6px; border:1px solid ${isCurrentlyOnLeave ? '#ffcdd2' : '#c8e6c9'}; background:${isCurrentlyOnLeave ? '#ffebee' : '#f1fbf1'}; cursor:pointer; font-size:0.8em;`; const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !isCurrentlyOnLeave; cb.style.marginRight = '5px'; cb.onchange = async () => { if (!cb.checked) { if (!roles.onLeave.includes(m.name)) roles.onLeave.push(m.name); } else { roles.onLeave = roles.onLeave.filter(name => name !== m.name); } await save('batches', batches); refreshAll(); }; label.append(cb, `${m.name}${isAssigned ? ' 👤' : ''}`); grid.appendChild(label); }); }
+function renderAttendanceToggles() {
+    let container = document.getElementById('attendance-container');
+    if (!container) {
+        container = document.createElement('section');
+        container.id = 'attendance-container';
+        document.getElementById('topic-container')?.after(container);
+    }
 
+    const assignedNames = getAllAssignedNames();
+    container.innerHTML = `
+        <h3>🕒 Availability (Week ${currentWeekIdx + 1})</h3>
+        <div class="checkbox-grid" id="attendance-grid"></div>
+    `;
+
+    const grid = document.getElementById('attendance-grid');
+    members.filter(m => !m.archived).forEach(m => {
+        const isOff = (roles.onLeave || []).includes(m.name);
+        const label = document.createElement('label');
+        label.className = `status-badge ${isOff ? 'delete-member-btn' : 'status-active'}`;
+        label.style.cursor = 'pointer';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !isOff;
+        cb.style.display = 'none'; // Hide actual checkbox for badge feel
+
+        cb.onchange = async () => {
+            if (!cb.checked) {
+                if (!roles.onLeave.includes(m.name)) roles.onLeave.push(m.name);
+            } else {
+                roles.onLeave = roles.onLeave.filter(n => n !== m.name);
+            }
+            await save('batches', batches);
+            refreshAll();
+        };
+
+        label.append(cb, `${m.name}${assignedNames.includes(m.name) ? ' 👤' : ''}`);
+        grid.appendChild(label);
+    });
+}
 // --------------------------
 // Teams & Role helpers
 // --------------------------
-function getAllAssignedNames() { const list = []; if (!roles) return list; Object.entries(roles).forEach(([k, v]) => { if (k === 'onLeave') return; if (Array.isArray(v)) list.push(...v); else if (typeof v === 'string' && v) list.push(v); }); return [...new Set(list)]; }
-
-function renderPresenterList() { const sel = document.getElementById('presenter-select'); if (!sel) return; const availableMembers = members.filter(m => !m.archived); sel.innerHTML = '<option value="">-- Select Presenter --</option>'; availableMembers.forEach(m => { const opt = document.createElement('option'); opt.value = m.name; opt.textContent = m.name; if (roles.presenter === m.name) opt.selected = true; sel.appendChild(opt); }); sel.onchange = (e) => { roles.presenter = e.target.value; const keys = ['host', 'intro', 'format', 'linkSharer', 'manager', 'spyAff', 'spyNeg', 'noteAff', 'noteNeg']; keys.forEach(k => { if (roles[k] === roles.presenter) roles[k] = ''; }); roles.affirmative = roles.affirmative.filter(n => n !== roles.presenter); roles.negative = roles.negative.filter(n => n !== roles.presenter); refreshAll(); } }
+function getAllAssignedNames() {
+    const list = [];
+    if (!roles) return list;
+    Object.entries(roles).forEach(([k, v]) => {
+        if (k === 'onLeave' || k === 'masterLinks') return;
+        if (Array.isArray(v)) list.push(...v);
+        else if (v && typeof v === 'string') list.push(v);
+    });
+    return [...new Set(list)];
+}
+function renderPresenterList() { const sel = document.getElementById('presenter-select'); if (!sel) return; const availableMembers = members.filter(m => !m.archived && !roles.onLeave.includes(m.name)); sel.innerHTML = '<option value="">-- Select Presenter --</option>'; availableMembers.forEach(m => { const opt = document.createElement('option'); opt.value = m.name; opt.textContent = m.name; if (roles.presenter === m.name) opt.selected = true; sel.appendChild(opt); }); sel.onchange = (e) => { roles.presenter = e.target.value; const keys = ['host', 'intro', 'format', 'linkSharer', 'manager', 'spyAff', 'spyNeg', 'noteAff', 'noteNeg']; keys.forEach(k => { if (roles[k] === roles.presenter) roles[k] = ''; }); roles.affirmative = roles.affirmative.filter(n => n !== roles.presenter); roles.negative = roles.negative.filter(n => n !== roles.presenter); refreshAll(); } }
 
 function renderPostSessionReport() { let reportDiv = document.getElementById('session-report'); if (!reportDiv) { reportDiv = document.createElement('div'); reportDiv.id = 'session-report'; document.querySelector('main')?.appendChild(reportDiv); } const guestCount = currentBatch.weeks[currentWeekIdx].audienceCount || 0; reportDiv.innerHTML = `\n        <div style="margin-top: 40px; padding: 20px; border-top: 2px dashed #ccc; background: #fffcf5; border-radius: 8px;">\n            <h3 style="color: #856404; margin-top: 0;">📊 Post-Session Report</h3>\n            <p style="font-size: 0.9em; color: #666;">Total attendance dashboard updates live as you type.</p>\n            <div style="display: flex; align-items: center; gap: 15px;">\n                <label><strong>Final Guest Count:</strong></label>\n                <input type="number" id="guest-count-input" value="${guestCount}" min="0" style="width: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 1.1em;">\n                <span id="auto-save-status" style="font-size: 0.8em; color: green; opacity: 0; transition: opacity 0.3s;">✓ Saved</span>\n            </div>\n        </div>\n    `; const input = document.getElementById('guest-count-input'); const status = document.getElementById('auto-save-status'); input.oninput = (e) => { const val = parseInt(e.target.value) || 0; currentBatch.weeks[currentWeekIdx].audienceCount = val; save('batches', batches); renderParticipantDashboard(); status.style.opacity = '1'; setTimeout(() => { status.style.opacity = '0'; }, 1000); } }
 
@@ -277,8 +384,52 @@ function renderTeamCheckboxes() { const affDiv = document.getElementById('aff-ch
 
 function createCheckbox(name, team, isChecked, isDisabled) { const label = document.createElement('label'); const info = getAssignmentInfo(name); label.style.display = 'block'; label.style.padding = '6px 10px'; label.style.margin = '4px 0'; label.style.borderRadius = '6px'; label.style.fontSize = '0.85em'; label.style.transition = 'all 0.2s ease'; const cb = document.createElement('input'); cb.type = 'checkbox'; cb.value = name; cb.checked = isChecked; cb.disabled = isDisabled; if (isDisabled) label.style.color = '#bbb'; cb.onchange = async () => { if (team === 'aff') { if (cb.checked) roles.negative = roles.negative.filter(n => n !== name); roles.affirmative = [...document.querySelectorAll('#aff-checkboxes input:checked')].map(i => i.value); } else { if (cb.checked) roles.affirmative = roles.affirmative.filter(n => n !== name); roles.negative = [...document.querySelectorAll('#neg-checkboxes input:checked')].map(i => i.value); } await save('batches', batches); refreshAll(); }; label.appendChild(cb); label.append(` ${name}`); return label; }
 
-function renderSupportRoles() { const mapping = { 'host-select': 'host', 'intro-select': 'intro', 'format-select': 'format', 'link-select': 'linkSharer', 'manager-select': 'manager', 'reminder-select': 'reminder', 'attendance-select': 'attendanceTaker', 'backup-presenter-select': 'backupPresenter', 'backup-host-select': 'backupHost', 'backup-intro-select': 'backupIntro', 'backup-format-select': 'backupFormat', 'backup-link-select': 'backupLinkSharer', 'backup-manager-select': 'backupManager', 'backup-reminder-select': 'backupReminder', 'backup-attendance-select': 'backupAttendanceTaker' }; const presentMembers = members.filter(m => !roles.onLeave.includes(m.name)); Object.entries(mapping).forEach(([id, key]) => { const sel = document.getElementById(id); if (!sel) return; sel.innerHTML = '<option value="">-- Select --</option>'; presentMembers.forEach(m => { const info = getAssignmentInfo(m.name); const opt = document.createElement('option'); opt.value = m.name; const isAlreadyAssignedElseWhere = info.hasTask && roles[key] !== m.name; opt.textContent = isAlreadyAssignedElseWhere ? `${m.name} (Assigned: ${info.label})` : m.name; if (roles[key] === m.name) opt.selected = true; sel.appendChild(opt); }); sel.onchange = async (e) => { roles[key] = e.target.value; await save('batches', batches); refreshAll(); }; }); }
+function renderSupportRoles() {
+    const mapping = { 
+        'host-select': 'host', 
+        'intro-select': 'intro', 
+        'format-select': 'format', 
+        'link-select': 'linkSharer', 
+        'manager-select': 'manager', 
+        'reminder-select': 'reminder', 
+        'attendance-select': 'attendanceTaker', 
+        'backup-presenter-select': 'backupPresenter', 
+        'backup-host-select': 'backupHost', 
+        'backup-intro-select': 'backupIntro', 
+        'backup-format-select': 'backupFormat', 
+        'backup-link-select': 'backupLinkSharer', 
+        'backup-manager-select': 'backupManager', 
+        'backup-reminder-select': 'backupReminder', 
+        'backup-attendance-select': 'backupAttendanceTaker' 
+    };
 
+    // Filter out members who are on leave or archived
+    const availableMembers = members.filter(m => !roles.onLeave.includes(m.name) && !m.archived);
+
+    Object.entries(mapping).forEach(([id, key]) => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        
+        sel.innerHTML = '<option value="">-- Select --</option>';
+        availableMembers.forEach(m => {
+            const info = getAssignmentInfo(m.name);
+            const opt = document.createElement('option');
+            opt.value = m.name;
+            
+            const isAlreadyAssignedElseWhere = info.hasTask && roles[key] !== m.name;
+            opt.textContent = isAlreadyAssignedElseWhere ? `${m.name} (Assigned: ${info.label})` : m.name;
+            
+            if (roles[key] === m.name) opt.selected = true;
+            sel.appendChild(opt);
+        });
+
+        sel.onchange = async (e) => {
+            roles[key] = e.target.value;
+            await save('batches', batches);
+            refreshAll();
+        };
+    });
+}
 function updateSubRoleDropdowns() { const config = [{ id: 'spy-aff', list: roles.affirmative, curr: 'spyAff' }, { id: 'note-aff', list: roles.affirmative, curr: 'noteAff' }, { id: 'backup-note-aff', list: roles.affirmative, curr: 'backupNoteAff' }, { id: 'spy-neg', list: roles.negative, curr: 'spyNeg' }, { id: 'note-neg', list: roles.negative, curr: 'noteNeg' }, { id: 'backup-note-neg', list: roles.negative, curr: 'backupNoteNeg' }]; config.forEach(cfg => { const sel = document.getElementById(cfg.id); if (!sel) return; sel.innerHTML = '<option value="">-- Select --</option>'; (cfg.list || []).forEach(name => { const info = getAssignmentInfo(name); const opt = document.createElement('option'); opt.value = name; const otherSubRoles = info.rolesList.filter(r => r !== cfg.curr); const label = otherSubRoles.length > 0 ? `${name} (${ROLE_LABELS[otherSubRoles[0]] || otherSubRoles[0]})` : name; opt.textContent = label; if (name === roles[cfg.curr]) opt.selected = true; sel.appendChild(opt); }); sel.onchange = async (e) => { roles[cfg.curr] = e.target.value; await save('batches', batches); refreshAll(); }; }); }
 
 // --------------------------
@@ -288,7 +439,7 @@ function renderBatchSelector() { const sel = document.getElementById('batch-sele
 
 function setupWeekButtons() { document.querySelectorAll('.week-btn').forEach(btn => btn.onclick = e => setWeek(parseInt(e.target.dataset.week))); }
 
-function checkArchiveStatus() { const isArchive = currentBatch?.status === 'archive'; if(!document.querySelector('main')) return; const inputs = document.querySelector('main').querySelectorAll('select, input, button'); inputs.forEach(el => { if (el.id !== 'batch-select' && el.id !== 'new-batch-btn' && !el.classList.contains('week-btn') && el.id !== 'delete-batch-btn') el.disabled = isArchive; }); document.body.style.backgroundColor = isArchive ? '#e9ecef' : '#ffffff'; }
+function checkArchiveStatus() { const isArchive = currentBatch?.status === 'archive'; if (!document.querySelector('main')) return; const inputs = document.querySelector('main').querySelectorAll('select, input, button'); inputs.forEach(el => { if (el.id !== 'batch-select' && el.id !== 'new-batch-btn' && !el.classList.contains('week-btn') && el.id !== 'delete-batch-btn') el.disabled = isArchive; }); document.body.style.backgroundColor = isArchive ? '#e9ecef' : '#ffffff'; }
 
 function getAssignmentInfo(name) { if (!name) return { count: 0, label: '', rolesList: [], hasTask: false }; const tasks = []; const teams = []; Object.entries(roles).forEach(([key, value]) => { if (key === 'onLeave') return; if (key === 'affirmative' || key === 'negative') { if (value.includes(name)) teams.push(key === 'affirmative' ? 'Affirmative Team' : 'Negative Team'); return; } if (value === name) tasks.push(key); }); const firstTaskKey = tasks[0]; const friendlyLabel = ROLE_LABELS[firstTaskKey] || firstTaskKey || ''; return { count: tasks.length, label: friendlyLabel, rolesList: tasks, teamList: teams, hasTask: tasks.length > 0 }; }
 
@@ -339,18 +490,42 @@ document.getElementById('copy-roles')?.addEventListener('click', () => {
     }
 });
 
-document.getElementById('save-roles')?.addEventListener('click', async () => { const btn = document.getElementById('save-roles'); if (btn) { btn.innerText = 'Saving...'; await save('batches', batches); btn.innerText = 'Save'; alert('Saved to Cloud!'); } });
-
+document.getElementById('save-roles')?.addEventListener('click', async () => {
+    const btn = document.getElementById('save-roles');
+    btn.innerText = '⌛ Saving...';
+    await save('batches', batches);
+    btn.innerText = '💾 Save Assignments';
+    alert('Success: All assignments synced to cloud.');
+});
 document.getElementById('reset-roles')?.addEventListener('click', () => { if (confirm('Reset assignments for this week?')) { currentBatch.weeks[currentWeekIdx].roles = createEmptyRoles(); roles = currentBatch.weeks[currentWeekIdx].roles; save('batches', batches); refreshAll(); } });
 
 // --------------------------
 // App start
 // --------------------------
 async function init() {
-    const main = document.querySelector('main'); if (main) main.style.opacity = '0.5';
-    const cloudMembers = await load('members'); const cloudBatches = await load('batches');
-    members = cloudMembers || []; batches = cloudBatches || [];
-    await initializeData(); setupWeekButtons(); renderBatchSelector(); if (main) main.style.opacity = '1'; console.log('Supabase Sync Complete.');
+    const main = document.querySelector('main');
+    if (main) main.style.opacity = '0.5';
+
+    members = await load('members') || [];
+    batches = await load('batches') || [];
+
+    if (batches.length === 0) {
+        const newBatch = {
+            id: "Batch 1",
+            status: "active",
+            weeks: Array.from({ length: 5 }, () => ({ topic: "", audienceCount: 0, roles: createEmptyRoles() }))
+        };
+        batches.push(newBatch);
+        await save("batches", batches);
+    }
+
+    currentBatch = batches.find(b => b.status === "active") || batches[batches.length - 1];
+
+    setupWeekButtons();
+    renderBatchSelector();
+    setWeek(0);
+
+    if (main) main.style.opacity = '1';
 }
 
 init();

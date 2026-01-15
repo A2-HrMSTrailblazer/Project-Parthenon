@@ -2,33 +2,41 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Members</title>
+    <title>Members | Weekly Roles</title>
     <link rel="stylesheet" href="./css/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
     <div id="content-wrapper">
       <header>
-        <h1>Members</h1>
+        <h1>Team Management</h1>
       </header>
 
       <main>
-        <h2>Facilitators</h2>
+        <section>
+          <h3>👥 Facilitator List</h3>
+          
+          <div id="table-container">
+            <table id="member-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Availability</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                </tbody>
+            </table>
+          </div>
 
-        <table id="member-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Availability</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-
-        <button id="add-member">Add Member</button>
+          <div class="button-group" style="margin-top: 20px;">
+            <button id="add-member" class="btn-primary">+ Add New Member</button>
+          </div>
+        </section>
       </main>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/navbar.js"></script>
     <script src="./js/storage.js"></script>

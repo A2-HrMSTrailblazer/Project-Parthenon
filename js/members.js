@@ -5,16 +5,15 @@ let members = [];
 
 /**
  * INITIALIZATION
- * Fetches the latest member list from Supabase
  */
 async function initMembers() {
-    const main = document.querySelector("main");
-    if (main) main.style.opacity = "0.5";
+    const tableBody = document.querySelector("#member-table tbody");
+    if (tableBody) tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading members...</td></tr>';
 
-    // Load from Supabase
+    // Load from Supabase (via storage.js)
     const cloudMembers = await load("members");
 
-    // Fallback to default list only if cloud is totally empty
+    // Fallback if empty
     if (!cloudMembers || cloudMembers.length === 0) {
         members = [
             { name: "Mabel" }, { name: "Nyein" }, { name: "Pai" },
@@ -22,13 +21,12 @@ async function initMembers() {
             { name: "Moh Moh" }, { name: "Lucas" }, { name: "Willie" },
             { name: "Tone Tone" }, { name: "Alex" }, { name: "Steven" },
             { name: "Titi" }, { name: "Halen" }
-        ];
+        ].map(m => ({ ...m, archived: false }));
         await save("members", members);
     } else {
         members = cloudMembers;
     }
 
-    if (main) main.style.opacity = "1";
     renderMembers();
 }
 
@@ -41,29 +39,33 @@ function renderMembers() {
 
     tableBody.innerHTML = "";
 
-    // Only show members who are NOT archived in the management list
     const activeMembers = members.filter(m => !m.archived);
 
+    if (activeMembers.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No active members found.</td></tr>';
+        return;
+    }
+
     activeMembers.forEach((m) => {
-        const firstLetter = m.name.charAt(0);
+        const firstLetter = m.name.charAt(0).toUpperCase();
         const row = document.createElement("tr");
 
         row.innerHTML = `
-                <td>
-                    <div class="member-identity">
-                        <div class="avatar-circle">${firstLetter}</div>
-                        <strong>${m.name}</strong>
-                    </div>
-                </td>
-                <td>
-                    <span class="status-badge status-active">Active Facilitator</span>
-                </td>
-                <td style="text-align: right;">
-                    <button class="delete-member-btn" onclick="archiveMember('${m.name}')">
-                        Remove
-                    </button>
-                </td>
-            `;
+            <td>
+                <div class="member-identity">
+                    <div class="avatar-circle">${firstLetter}</div>
+                    <strong>${m.name}</strong>
+                </div>
+            </td>
+            <td>
+                <span class="status-badge status-active">Active Facilitator</span>
+            </td>
+            <td style="text-align: right;">
+                <button class="delete-member-btn" onclick="archiveMember('${m.name}')">
+                    Remove
+                </button>
+            </td>
+        `;
         tableBody.appendChild(row);
     });
 }
@@ -71,9 +73,8 @@ function renderMembers() {
 /**
  * ARCHIVE MEMBER (Soft Delete)
  */
-async function archiveMember(nameToArchive) {
+window.archiveMember = async function(nameToArchive) {
     if (confirm(`Archive ${nameToArchive}? They will stay in past records but won't show up for new assignments.`)) {
-        // Find the member by name and set archived to true
         members = members.map(m =>
             m.name === nameToArchive ? { ...m, archived: true } : m
         );
@@ -81,47 +82,41 @@ async function archiveMember(nameToArchive) {
         await save("members", members);
         renderMembers();
     }
-}
+};
 
 /**
  * ADD MEMBER
  */
 document.getElementById("add-member").onclick = async () => {
-    const name = prompt("Enter member name:");
+    const name = prompt("Enter new facilitator name:");
     if (!name || name.trim() === "") return;
 
-    // Check for duplicates
-    if (members.some(m => m.name.toLowerCase() === name.toLowerCase().trim())) {
-        alert("This name already exists!");
+    const cleanName = name.trim();
+
+    // Check for duplicates (including archived ones)
+    if (members.some(m => m.name.toLowerCase() === cleanName.toLowerCase())) {
+        alert("This name already exists in your records!");
         return;
     }
 
-    members.push({ name: name.trim() });
-
-    // UI Feedback
     const btn = document.getElementById("add-member");
-    btn.disabled = true;
-    btn.innerText = "Saving...";
+    const originalText = btn.innerText;
 
-    await save("members", members);
+    try {
+        btn.disabled = true;
+        btn.innerText = "Saving...";
 
-    btn.disabled = false;
-    btn.innerText = "Add Member";
-    renderMembers();
-};
-
-/**
- * DELETE MEMBER
- */
-async function deleteMember(index) {
-    const nameToDelete = members[index].name;
-
-    if (confirm(`Are you sure you want to remove ${nameToDelete}? This will not remove them from past batch history, but they won't appear in future selections.`)) {
-        members.splice(index, 1);
+        members.push({ name: cleanName, archived: false });
         await save("members", members);
+        
         renderMembers();
+    } catch (error) {
+        alert("Error saving member. Please try again.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
     }
-}
+};
 
 // Start the app
 initMembers();

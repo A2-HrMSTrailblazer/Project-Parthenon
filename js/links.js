@@ -1,111 +1,103 @@
 /**
  * GLOBAL STATE
  */
-let allLinks = []; // This will hold everything extracted from batches
-
+let allLinks = [];
 const tbody = document.querySelector("#link-table tbody");
 const searchInput = document.getElementById("link-search");
+const categoryFilter = document.getElementById("category-filter");
 
-// --- INITIALIZATION ---
+// Mapping keys to readable Titles and Categories
+const masterLinkConfig = {
+    zoomLink: { title: "Meeting Link", cat: "Meeting" },
+    membershipForm: { title: "Membership Form", cat: "Feedback" },
+    topicSlides: { title: "Topic Slides", cat: "Presentation" },
+    introSlides: { title: "Intro Slides", cat: "Intro" },
+    formatSlides: { title: "Format Slides", cat: "Format" },
+    zoomBackground: { title: "Zoom Background", cat: "Meeting" },
+    feedbackForm: { title: "Feedback Form", cat: "Feedback" },
+    sotdLink: { title: "SOTD Canva", cat: "Presentation" }
+};
 
+/**
+ * INITIALIZATION
+ */
 async function init() {
     const main = document.querySelector("main");
     if (main) main.style.opacity = "0.5";
 
     const batches = await load("batches") || [];
-
     allLinks = [];
-
-    // Mapping keys to readable Titles and Categories
-    const masterLinkConfig = {
-        zoomLink: { title: "Meeting Link", cat: "Meeting" },
-        membershipForm: { title: "Membership Form", cat: "Feedback" },
-        topicSlides: { title: "Topic Slides", cat: "Presentation" },
-        introSlides: { title: "Intro Slides", cat: "Intro" },
-        formatSlides: { title: "Format Slides", cat: "Format" },
-        zoomBackground: { title: "Zoom Background", cat: "Meeting" },
-        feedbackForm: { title: "Feedback Form", cat: "Feedback" },
-        sotdLink: { title: "SOTD Canva", cat: "Presentation" }
-    };
 
     batches.forEach(batch => {
         batch.weeks.forEach((week, idx) => {
-            const contextStr = `${batch.id} | Week ${idx + 1}`;
+            const contextStr = `${batch.id} • Week ${idx + 1}`;
             const topicStr = week.topic || "No Topic Set";
 
-            // 1. Extract the OLD Custom Links (if any exist)
-            if (week.links && week.links.length > 0) {
-                week.links.forEach(lk => {
-                    allLinks.push({
-                        title: masterLinkConfig[key].title,
-                        url: url,
-                        category: masterLinkConfig[key].cat,
-                        context: contextStr,
-                        topic: topicStr,
-                        // Add these unique identifiers:
-                        batchId: batch.id,
-                        weekIdx: idx,
-                        linkKey: key, // for master links
-                        isMaster: true
-                    });
-                });
-            }
-
-            // 2. Extract the NEW Master Links (The 8 specialized ones)
-            if (week.roles && week.roles.masterLinks) {
+            // 1. Extract Master Links
+            if (week.roles?.masterLinks) {
                 Object.entries(week.roles.masterLinks).forEach(([key, url]) => {
-                    // Only add to list if there is actually a URL saved
                     if (url && url.trim() !== "" && masterLinkConfig[key]) {
                         allLinks.push({
                             title: masterLinkConfig[key].title,
-                            url: url,
+                            url: url.trim(),
                             category: masterLinkConfig[key].cat,
                             context: contextStr,
                             topic: topicStr,
-                            // Add these unique identifiers:
                             batchId: batch.id,
                             weekIdx: idx,
-                            linkKey: key, // for master links
+                            linkKey: key,
                             isMaster: true
                         });
                     }
                 });
             }
+
+            // 2. Extract Custom Links (Old/Manual links)
+            if (week.links && Array.isArray(week.links)) {
+                week.links.forEach(lk => {
+                    allLinks.push({
+                        title: lk.title || "Custom Link",
+                        url: lk.url,
+                        category: lk.category || "General",
+                        context: contextStr,
+                        topic: topicStr,
+                        batchId: batch.id,
+                        weekIdx: idx,
+                        linkKey: lk.url,
+                        isMaster: false
+                    });
+                });
+            }
         });
     });
 
-    // Show newest links first
-    allLinks.reverse();
-
+    allLinks.reverse(); // Show newest first
     renderLinks();
-
     if (main) main.style.opacity = "1";
-    console.log("Master Links and Custom Links synced from batches.");
 }
 
-// --- RENDERER ---
-
-const categoryFilter = document.getElementById("category-filter");
-
+/**
+ * RENDERER
+ */
 function renderLinks() {
+    if (!tbody) return;
     const searchTerm = searchInput.value.toLowerCase();
     const selectedCat = categoryFilter.value;
 
     tbody.innerHTML = "";
 
     const filtered = allLinks.filter(lk => {
-        const matchesSearch =
-            lk.title.toLowerCase().includes(searchTerm) ||
+        const matchesSearch = 
+            lk.title.toLowerCase().includes(searchTerm) || 
             lk.context.toLowerCase().includes(searchTerm) ||
             lk.topic.toLowerCase().includes(searchTerm);
-
+        
         const matchesCategory = (selectedCat === "all" || lk.category === selectedCat);
-
         return matchesSearch && matchesCategory;
     });
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px; color:#888;">No links match your filters.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:40px; color:#888;">No resources found matching your search.</td></tr>`;
         return;
     }
 
@@ -116,17 +108,17 @@ function renderLinks() {
         row.innerHTML = `
             <td>
                 <div style="font-weight: 600; color: var(--sky-deep);">${lk.title}</div>
-                <div style="font-size: 0.75rem; color: #888;">${lk.context}</div>
+                <div style="font-size: 0.75rem; color: #888;">${lk.context} <span style="margin: 0 5px;">•</span> ${lk.topic}</div>
             </td>
             <td>
                 <div class="url-flex-wrapper">
                     <a href="${lk.url}" target="_blank" class="truncated-url" title="${lk.url}">${lk.url}</a>
-                    <div style="display: flex; gap: 5px;">
+                    <div style="display: flex; gap: 8px;">
                         <button class="copy-icon-btn" onclick="copyToClipboard('${lk.url}', this)" title="Copy Link">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         </button>
-                        <button class="delete-link-btn" onclick="deleteLinkFromBatch('${lk.batchId}', ${lk.weekIdx}, '${lk.linkKey || lk.url}', ${lk.isMaster})" title="Delete Link">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <button class="delete-link-btn" onclick="deleteLinkFromBatch('${lk.batchId}', ${lk.weekIdx}, '${lk.linkKey}', ${lk.isMaster})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </div>
                 </div>
@@ -141,42 +133,32 @@ function renderLinks() {
     });
 }
 
-// Event Listeners
-if (searchInput) searchInput.oninput = renderLinks;
-if (categoryFilter) categoryFilter.onchange = renderLinks;
-
-// --- HELPERS ---
-
+// Helpers
 function getCategoryColor(cat) {
     const colors = {
         'Presentation': '#6f42c1',
         'Meeting': '#007bff',
         'Feedback': '#28a745',
         'Intro': '#fd7e14',
-        'Format': '#d4af37' // Use hex for gold for consistency
+        'Format': '#d4af37'
     };
     return colors[cat] || '#6c757d';
 }
 
-function copyToClipboard(text, btn) {
+window.copyToClipboard = function(text, btn) {
     navigator.clipboard.writeText(text).then(() => {
-        // Add the 'copied' class for styling
         btn.classList.add("copied");
-
-        // Change icon temporarily to a checkmark if you like, 
-        // or just rely on the color flash
         const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>';
         setTimeout(() => {
             btn.classList.remove("copied");
             btn.innerHTML = originalHTML;
         }, 1500);
     });
-}
+};
 
-async function deleteLinkFromBatch(batchId, weekIdx, identifier, isMaster) {
-    if (!confirm("Are you sure you want to delete this link? This will remove it from the session records.")) return;
+window.deleteLinkFromBatch = async function(batchId, weekIdx, identifier, isMaster) {
+    if (!confirm("Remove this link from session records?")) return;
 
     const batches = await load("batches");
     const batch = batches.find(b => b.id === batchId);
@@ -185,17 +167,17 @@ async function deleteLinkFromBatch(batchId, weekIdx, identifier, isMaster) {
     const week = batch.weeks[weekIdx];
 
     if (isMaster) {
-        // Clear the specific key in masterLinks
-        if (week.roles && week.roles.masterLinks) {
-            week.roles.masterLinks[identifier] = "";
-        }
+        if (week.roles?.masterLinks) week.roles.masterLinks[identifier] = "";
     } else {
-        // Filter out from custom links array
         week.links = (week.links || []).filter(l => l.url !== identifier);
     }
 
     await save("batches", batches);
-    init(); // Refresh everything
-}
+    init();
+};
+
+// Event Listeners
+if (searchInput) searchInput.oninput = renderLinks;
+if (categoryFilter) categoryFilter.onchange = renderLinks;
 
 init();

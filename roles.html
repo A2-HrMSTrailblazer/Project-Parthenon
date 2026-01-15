@@ -1,127 +1,145 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Weekly Role Assignments</title>
+    <title>Weekly Roles | Dashboard</title>
     <link rel="stylesheet" href="./css/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
     <div id="content-wrapper">
-      <header>
-        <h1>Weekly Roles</h1>
+      <header class="dashboard-header">
+        <div>
+          <h1>Weekly Role Assignments</h1>
+          <p
+            id="current-selection-display"
+            style="color: var(--sky-deep); font-weight: 600"
+          >
+            Loading batch data...
+          </p>
+        </div>
       </header>
 
       <main>
-        <div class="batch-control-panel">
-          <div>
-            <select id="batch-select"></select>
+        <section class="control-card">
+          <div class="batch-control-panel">
+            <div class="select-wrapper">
+              <label for="batch-select">Active Batch</label>
+              <select id="batch-select"></select>
+            </div>
+
+            <div class="button-group">
+              <button id="new-batch-btn" class="btn-primary">
+                + New Batch
+              </button>
+              <button id="delete-batch-btn" class="delete-member-btn">
+                Delete Batch
+              </button>
+            </div>
           </div>
-          <button id="new-batch-btn">+ Start New Batch</button>
-          <button id="delete-batch-btn">Delete This Batch</button>
-        </div>
-        <div class="week-selection-group">
-          <button type="button" class="week-btn" data-week="0">Week 1</button>
-          <button type="button" class="week-btn" data-week="1">Week 2</button>
-          <button type="button" class="week-btn" data-week="2">Week 3</button>
-          <button type="button" class="week-btn" data-week="3">Week 4</button>
-          <button type="button" class="week-btn" data-week="4">Break Week</button>
-        </div>
-        <h2>Role Assignments</h2>
+
+          <div class="week-selection-group">
+            <button type="button" class="week-btn" data-week="0">Week 1</button>
+            <button type="button" class="week-btn" data-week="1">Week 2</button>
+            <button type="button" class="week-btn" data-week="2">Week 3</button>
+            <button type="button" class="week-btn" data-week="3">Week 4</button>
+            <button type="button" class="week-btn" data-week="4">Break</button>
+          </div>
+        </section>
 
         <section>
-          <h3>1. Presenter</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
-            <div>
-              <label>Primary Presenter:</label><br />
-              <select id="presenter-select" style="width: 100%"></select>
+          <h3>🎤 1. Presenter Roles</h3>
+          <div class="grid-2-col">
+            <div class="form-group">
+              <label>Primary Presenter:</label>
+              <select id="presenter-select"></select>
             </div>
-            <div>
-              <label>Backup Presenter:</label><br />
-              <select id="backup-presenter-select" style="width: 100%"></select>
+            <div class="form-group">
+              <label>Backup Presenter:</label>
+              <select id="backup-presenter-select"></select>
             </div>
           </div>
         </section>
 
         <section>
-          <h3>2. Support Roles</h3>
-          <div class="support-role-row">
-            <div>Role</div>
-            <div>Primary</div>
-            <div>Backup</div>
-          </div>
+          <h3>🛠️ 2. Support Roles</h3>
+          <div id="table-container">
+            <div class="support-role-row header-row">
+              <div>Role</div>
+              <div>Primary</div>
+              <div>Backup</div>
+            </div>
 
-          <div class="support-role-row">
-            <label>Host:</label>
-            <select id="host-select"></select>
-            <select id="backup-host-select"></select>
-          </div>
+            <div class="support-role-row">
+              <label>Host:</label>
+              <select id="host-select"></select>
+              <select id="backup-host-select"></select>
+            </div>
 
-          <div class="support-role-row">
-            <label>Intro:</label>
-            <select id="intro-select"></select>
-            <select id="backup-intro-select"></select>
-          </div>
+            <div class="support-role-row">
+              <label>Intro:</label>
+              <select id="intro-select"></select>
+              <select id="backup-intro-select"></select>
+            </div>
 
-          <div class="support-role-row">
-            <label>Format:</label>
-            <select id="format-select"></select>
-            <select id="backup-format-select"></select>
-          </div>
+            <div class="support-role-row">
+              <label>Format:</label>
+              <select id="format-select"></select>
+              <select id="backup-format-select"></select>
+            </div>
 
-          <div class="support-role-row">
-            <label>Link Sharer:</label>
-            <select id="link-select"></select>
-            <select id="backup-link-select"></select>
-          </div>
+            <div class="support-role-row">
+              <label>Link Sharer:</label>
+              <select id="link-select"></select>
+              <select id="backup-link-select"></select>
+            </div>
 
-          <div class="support-role-row">
-            <label>Reminder:</label>
-            <select id="reminder-select"></select>
-            <select id="backup-reminder-select"></select>
-          </div>
+            <div class="support-role-row">
+              <label>Reminder:</label>
+              <select id="reminder-select"></select>
+              <select id="backup-reminder-select"></select>
+            </div>
 
-          <div class="support-role-row">
-            <label>Weekly Manager:</label>
-            <select id="manager-select"></select>
-            <select id="backup-manager-select"></select>
-          </div>
+            <div class="support-role-row">
+              <label>Weekly Manager:</label>
+              <select id="manager-select"></select>
+              <select id="backup-manager-select"></select>
+            </div>
 
-          <div class="support-role-row">
-            <label>Attendance Taker:</label>
-            <select id="attendance-select"></select>
-            <select id="backup-attendance-select"></select>
+            <div class="support-role-row">
+              <label>Attendance:</label>
+              <select id="attendance-select"></select>
+              <select id="backup-attendance-select"></select>
+            </div>
           </div>
         </section>
 
         <section>
-          <h3>3. Assign Teams</h3>
+          <h3>⚔️ 3. Debate Teams</h3>
           <div class="team-container">
             <div class="team-box aff-box">
-              <h4 style="color: green">✅ Affirmative Team</h4>
-              <div id="aff-checkboxes"></div>
+              <h4 class="team-title aff">✅ Affirmative Team</h4>
+              <div id="aff-checkboxes" class="checkbox-grid"></div>
+              <hr />
               <div class="sub-role-group">
                 <label>Spy Judge:</label>
                 <select id="spy-aff"></select>
-
                 <label>Note-taker:</label>
                 <select id="note-aff"></select>
-
                 <label>Backup Note:</label>
                 <select id="backup-note-aff"></select>
               </div>
             </div>
 
             <div class="team-box neg-box">
-              <h4 style="color: red">❌ Negative Team</h4>
-              <div id="neg-checkboxes"></div>
+              <h4 class="team-title neg">❌ Negative Team</h4>
+              <div id="neg-checkboxes" class="checkbox-grid"></div>
+              <hr />
               <div class="sub-role-group">
                 <label>Spy Judge:</label>
                 <select id="spy-neg"></select>
-
                 <label>Note-taker:</label>
                 <select id="note-neg"></select>
-
                 <label>Backup Note:</label>
                 <select id="backup-note-neg"></select>
               </div>
@@ -130,36 +148,20 @@
         </section>
 
         <section id="weekly-link-container-wrapper">
-          <h3>4. Master Links</h3>
-          <div
-            id="weekly-link-container"
-            style="
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 15px;
-              background: #fffcf5;
-              padding: 20px;
-              border-radius: 8px;
-              border: 1px solid #ffe0b2;
-            "
-          ></div>
+          <h3>🔗 4. Master Links (Auto-Syncs to Link Page)</h3>
+          <div id="weekly-link-container" class="link-grid-input"></div>
         </section>
 
-        <div class="button-group">
-          <button type="button" id="save-roles">Save</button>
-          <button type="button" id="copy-roles">Copy to Clipboard</button>
-          <button type="button" id="reset-roles">Reset</button>
-        </div>
-
-        <div id="table-container">
-          <table id="assignment-table">
-            <thead>
-              <tr>
-                <th>Role</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <div class="floating-actions">
+          <button type="button" id="save-roles" class="btn-primary">
+            💾 Save Assignments
+          </button>
+          <button type="button" id="copy-roles">
+            📋 Copy to Clipboard
+          </button>
+          <button type="button" id="reset-roles" class="delete-member-btn">
+            🔄 Reset Week
+          </button>
         </div>
       </main>
     </div>
