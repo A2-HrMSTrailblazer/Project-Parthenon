@@ -37,9 +37,16 @@ async function init() {
             if (week.links && week.links.length > 0) {
                 week.links.forEach(lk => {
                     allLinks.push({
-                        ...lk,
+                        title: masterLinkConfig[key].title,
+                        url: url,
+                        category: masterLinkConfig[key].cat,
                         context: contextStr,
-                        topic: topicStr
+                        topic: topicStr,
+                        // Add these unique identifiers:
+                        batchId: batch.id,
+                        weekIdx: idx,
+                        linkKey: key, // for master links
+                        isMaster: true
                     });
                 });
             }
@@ -54,7 +61,12 @@ async function init() {
                             url: url,
                             category: masterLinkConfig[key].cat,
                             context: contextStr,
-                            topic: topicStr
+                            topic: topicStr,
+                            // Add these unique identifiers:
+                            batchId: batch.id,
+                            weekIdx: idx,
+                            linkKey: key, // for master links
+                            isMaster: true
                         });
                     }
                 });
@@ -78,15 +90,15 @@ const categoryFilter = document.getElementById("category-filter");
 function renderLinks() {
     const searchTerm = searchInput.value.toLowerCase();
     const selectedCat = categoryFilter.value;
-    
+
     tbody.innerHTML = "";
 
     const filtered = allLinks.filter(lk => {
-        const matchesSearch = 
+        const matchesSearch =
             lk.title.toLowerCase().includes(searchTerm) ||
             lk.context.toLowerCase().includes(searchTerm) ||
             lk.topic.toLowerCase().includes(searchTerm);
-        
+
         const matchesCategory = (selectedCat === "all" || lk.category === selectedCat);
 
         return matchesSearch && matchesCategory;
@@ -109,9 +121,14 @@ function renderLinks() {
             <td>
                 <div class="url-flex-wrapper">
                     <a href="${lk.url}" target="_blank" class="truncated-url" title="${lk.url}">${lk.url}</a>
-                    <button class="copy-icon-btn" onclick="copyToClipboard('${lk.url}', this)" title="Copy Link">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    </button>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="copy-icon-btn" onclick="copyToClipboard('${lk.url}', this)" title="Copy Link">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        </button>
+                        <button class="delete-link-btn" onclick="deleteLinkFromBatch('${lk.batchId}', ${lk.weekIdx}, '${lk.linkKey || lk.url}', ${lk.isMaster})" title="Delete Link">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
                 </div>
             </td>
             <td>
@@ -145,7 +162,7 @@ function copyToClipboard(text, btn) {
     navigator.clipboard.writeText(text).then(() => {
         // Add the 'copied' class for styling
         btn.classList.add("copied");
-        
+
         // Change icon temporarily to a checkmark if you like, 
         // or just rely on the color flash
         const originalHTML = btn.innerHTML;
@@ -156,6 +173,29 @@ function copyToClipboard(text, btn) {
             btn.innerHTML = originalHTML;
         }, 1500);
     });
+}
+
+async function deleteLinkFromBatch(batchId, weekIdx, identifier, isMaster) {
+    if (!confirm("Are you sure you want to delete this link? This will remove it from the session records.")) return;
+
+    const batches = await load("batches");
+    const batch = batches.find(b => b.id === batchId);
+    if (!batch) return;
+
+    const week = batch.weeks[weekIdx];
+
+    if (isMaster) {
+        // Clear the specific key in masterLinks
+        if (week.roles && week.roles.masterLinks) {
+            week.roles.masterLinks[identifier] = "";
+        }
+    } else {
+        // Filter out from custom links array
+        week.links = (week.links || []).filter(l => l.url !== identifier);
+    }
+
+    await save("batches", batches);
+    init(); // Refresh everything
 }
 
 init();
