@@ -104,14 +104,14 @@ async function initializeData() {
 
 function validationCleanup() {
     const onLeave = roles.onLeave || [];
-    
+
     // Check every role key
     Object.keys(roles).forEach(key => {
         if (key === 'onLeave' || key === 'masterLinks') return;
 
         // If it's a single string role (like presenter, host, etc.)
         if (typeof roles[key] === 'string' && onLeave.includes(roles[key])) {
-            roles[key] = ""; 
+            roles[key] = "";
         }
 
         // If it's a team array (affirmative/negative)
@@ -175,6 +175,7 @@ function refreshAll() {
         updateSubRoleDropdowns();
         renderSupportRoles();
         renderWeeklyLinkEditor();
+        renderPostSessionReport();
     }
 
     renderTable();
@@ -378,29 +379,84 @@ function getAllAssignedNames() {
 }
 function renderPresenterList() { const sel = document.getElementById('presenter-select'); if (!sel) return; const availableMembers = members.filter(m => !m.archived && !roles.onLeave.includes(m.name)); sel.innerHTML = '<option value="">-- Select Presenter --</option>'; availableMembers.forEach(m => { const opt = document.createElement('option'); opt.value = m.name; opt.textContent = m.name; if (roles.presenter === m.name) opt.selected = true; sel.appendChild(opt); }); sel.onchange = (e) => { roles.presenter = e.target.value; const keys = ['host', 'intro', 'format', 'linkSharer', 'manager', 'spyAff', 'spyNeg', 'noteAff', 'noteNeg']; keys.forEach(k => { if (roles[k] === roles.presenter) roles[k] = ''; }); roles.affirmative = roles.affirmative.filter(n => n !== roles.presenter); roles.negative = roles.negative.filter(n => n !== roles.presenter); refreshAll(); } }
 
-function renderPostSessionReport() { let reportDiv = document.getElementById('session-report'); if (!reportDiv) { reportDiv = document.createElement('div'); reportDiv.id = 'session-report'; document.querySelector('main')?.appendChild(reportDiv); } const guestCount = currentBatch.weeks[currentWeekIdx].audienceCount || 0; reportDiv.innerHTML = `\n        <div style="margin-top: 40px; padding: 20px; border-top: 2px dashed #ccc; background: #fffcf5; border-radius: 8px;">\n            <h3 style="color: #856404; margin-top: 0;">📊 Post-Session Report</h3>\n            <p style="font-size: 0.9em; color: #666;">Total attendance dashboard updates live as you type.</p>\n            <div style="display: flex; align-items: center; gap: 15px;">\n                <label><strong>Final Guest Count:</strong></label>\n                <input type="number" id="guest-count-input" value="${guestCount}" min="0" style="width: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 1.1em;">\n                <span id="auto-save-status" style="font-size: 0.8em; color: green; opacity: 0; transition: opacity 0.3s;">✓ Saved</span>\n            </div>\n        </div>\n    `; const input = document.getElementById('guest-count-input'); const status = document.getElementById('auto-save-status'); input.oninput = (e) => { const val = parseInt(e.target.value) || 0; currentBatch.weeks[currentWeekIdx].audienceCount = val; save('batches', batches); renderParticipantDashboard(); status.style.opacity = '1'; setTimeout(() => { status.style.opacity = '0'; }, 1000); } }
+function renderPostSessionReport() {
+    let reportSection = document.getElementById('session-report');
 
+    // Create the section if it doesn't exist
+    if (!reportSection) {
+        reportSection = document.createElement('section');
+        reportSection.id = 'session-report';
+
+        // Find where to insert it (before the action buttons)
+        const main = document.querySelector('main');
+        const actions = document.querySelector('.floating-actions');
+        if (actions) {
+            main.insertBefore(reportSection, actions);
+        } else {
+            main.appendChild(reportSection);
+        }
+    }
+
+    const guestCount = currentBatch.weeks[currentWeekIdx].audienceCount || 0;
+
+    // Use standard classes: 'section' (inherited), 'support-role-row', and dashboard headers
+    reportSection.innerHTML = `
+        <h3>📊 Post-Session Report</h3>
+        <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">
+            Update this count after the session to calculate the total community impact.
+        </p>
+        
+        <div class="support-role-row" style="border-bottom: none; background: #fcfdfe; border-radius: 10px; padding: 15px;">
+            <label><strong>Final Guest Count:</strong></label>
+            <div>
+                <input type="number" id="guest-count-input" value="${guestCount}" min="0" 
+                       style="width: 120px; font-weight: bold; font-size: 1.1rem; border: 2px solid var(--sky-primary); text-align: center;">
+            </div>
+            <div id="auto-save-status" style="color: var(--success); font-weight: 600; opacity: 0; transition: opacity 0.3s; font-size: 0.9rem;">
+                ✓ Count Sync'd
+            </div>
+        </div>
+    `;
+
+    const input = document.getElementById('guest-count-input');
+    const status = document.getElementById('auto-save-status');
+
+    input.oninput = (e) => {
+        const val = parseInt(e.target.value) || 0;
+        currentBatch.weeks[currentWeekIdx].audienceCount = val;
+
+        // Save to storage.js
+        save('batches', batches);
+
+        // Update the Attendance Dashboard at the top of the page immediately
+        renderParticipantDashboard();
+
+        // Show "Saved" feedback
+        status.style.opacity = '1';
+        setTimeout(() => { status.style.opacity = '0'; }, 1200);
+    };
+}
 function renderTeamCheckboxes() { const affDiv = document.getElementById('aff-checkboxes'); const negDiv = document.getElementById('neg-checkboxes'); if (!affDiv || !negDiv) return; affDiv.innerHTML = ''; negDiv.innerHTML = ''; const presentMembers = members.filter(m => !roles.onLeave.includes(m.name) && !m.archived); presentMembers.forEach(m => { if (m.name === roles.presenter) return; const isDisabledInAff = roles.negative.includes(m.name); const affCb = createCheckbox(m.name, 'aff', roles.affirmative.includes(m.name), isDisabledInAff); affDiv.appendChild(affCb); const isDisabledInNeg = roles.affirmative.includes(m.name); const negCb = createCheckbox(m.name, 'neg', roles.negative.includes(m.name), isDisabledInNeg); negDiv.appendChild(negCb); }); }
 
 function createCheckbox(name, team, isChecked, isDisabled) { const label = document.createElement('label'); const info = getAssignmentInfo(name); label.style.display = 'block'; label.style.padding = '6px 10px'; label.style.margin = '4px 0'; label.style.borderRadius = '6px'; label.style.fontSize = '0.85em'; label.style.transition = 'all 0.2s ease'; const cb = document.createElement('input'); cb.type = 'checkbox'; cb.value = name; cb.checked = isChecked; cb.disabled = isDisabled; if (isDisabled) label.style.color = '#bbb'; cb.onchange = async () => { if (team === 'aff') { if (cb.checked) roles.negative = roles.negative.filter(n => n !== name); roles.affirmative = [...document.querySelectorAll('#aff-checkboxes input:checked')].map(i => i.value); } else { if (cb.checked) roles.affirmative = roles.affirmative.filter(n => n !== name); roles.negative = [...document.querySelectorAll('#neg-checkboxes input:checked')].map(i => i.value); } await save('batches', batches); refreshAll(); }; label.appendChild(cb); label.append(` ${name}`); return label; }
 
 function renderSupportRoles() {
-    const mapping = { 
-        'host-select': 'host', 
-        'intro-select': 'intro', 
-        'format-select': 'format', 
-        'link-select': 'linkSharer', 
-        'manager-select': 'manager', 
-        'reminder-select': 'reminder', 
-        'attendance-select': 'attendanceTaker', 
-        'backup-presenter-select': 'backupPresenter', 
-        'backup-host-select': 'backupHost', 
-        'backup-intro-select': 'backupIntro', 
-        'backup-format-select': 'backupFormat', 
-        'backup-link-select': 'backupLinkSharer', 
-        'backup-manager-select': 'backupManager', 
-        'backup-reminder-select': 'backupReminder', 
-        'backup-attendance-select': 'backupAttendanceTaker' 
+    const mapping = {
+        'host-select': 'host',
+        'intro-select': 'intro',
+        'format-select': 'format',
+        'link-select': 'linkSharer',
+        'manager-select': 'manager',
+        'reminder-select': 'reminder',
+        'attendance-select': 'attendanceTaker',
+        'backup-presenter-select': 'backupPresenter',
+        'backup-host-select': 'backupHost',
+        'backup-intro-select': 'backupIntro',
+        'backup-format-select': 'backupFormat',
+        'backup-link-select': 'backupLinkSharer',
+        'backup-manager-select': 'backupManager',
+        'backup-reminder-select': 'backupReminder',
+        'backup-attendance-select': 'backupAttendanceTaker'
     };
 
     // Filter out members who are on leave or archived
@@ -409,16 +465,16 @@ function renderSupportRoles() {
     Object.entries(mapping).forEach(([id, key]) => {
         const sel = document.getElementById(id);
         if (!sel) return;
-        
+
         sel.innerHTML = '<option value="">-- Select --</option>';
         availableMembers.forEach(m => {
             const info = getAssignmentInfo(m.name);
             const opt = document.createElement('option');
             opt.value = m.name;
-            
+
             const isAlreadyAssignedElseWhere = info.hasTask && roles[key] !== m.name;
             opt.textContent = isAlreadyAssignedElseWhere ? `${m.name} (Assigned: ${info.label})` : m.name;
-            
+
             if (roles[key] === m.name) opt.selected = true;
             sel.appendChild(opt);
         });
