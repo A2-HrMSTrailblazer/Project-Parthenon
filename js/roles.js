@@ -336,8 +336,7 @@ function setupDropdown(elementId, roleKey, otherRoleKey) {
 }
 
 function renderTopicInput() {
-    const labelText = (currentWeekIdx === 4) ? "Break Notes (Optional)" : "Debate Topic";
-    const placeholderText = (currentWeekIdx === 4) ? "Enter notes..." : "Enter topic...";
+    // 1. Handle Container
     let container = document.getElementById('topic-container');
     if (!container) {
         container = document.createElement('section');
@@ -345,31 +344,26 @@ function renderTopicInput() {
         document.querySelector('.control-card')?.after(container);
     }
 
+    const isBreakWeek = (currentWeekIdx === 4);
+    const labelText = isBreakWeek ? "Break Notes (Optional)" : "Debate Topic";
+    const placeholderText = isBreakWeek ? "Enter notes..." : "Enter topic...";
     const week = currentBatch.weeks[currentWeekIdx];
 
+    // 2. Render HTML
     container.innerHTML = `
         <h3>📖 Session Details</h3>
         <div class="grid-2-col">
             <div class="form-group date-group">
-                <label style="
-                    font-size: 0.8rem;
-                    font-weight: bold;
-                    color: var(--sky-deep);"
-                    >
-                    Session Date
+                <label style="font-size: 0.8rem; font-weight: bold; color: var(--sky-deep);">
+                    ${isBreakWeek ? 'Break Start Date' : 'Session Date'}
                 </label>
                 <input style="margin-top: 5px; border: 2px solid var(--sky-light);"
                        type="date"
                        id="date-field"
-                       value="${week.roles.date || ''}"
-                />
+                       value="${week.roles.date || ''}" />
             </div>
             <div class="form-group">
-                <label style="
-                    font-size: 0.8rem;
-                    font-weight: bold;
-                    color: var(--sky-deep);"
-                    >
+                <label style="font-size: 0.8rem; font-weight: bold; color: var(--sky-deep);">
                     ${labelText}
                 </label>
                 <input type="text" id="topic-field" placeholder="${placeholderText}" 
@@ -378,15 +372,25 @@ function renderTopicInput() {
         </div>
     `;
 
-    document.getElementById('date-field').onchange = e => {
-        week.roles.date = e.target.value;
-        save('batches', batches);
+    // 3. Attach Listeners correctly
+    const dateInput = document.getElementById('date-field');
+    const topicInput = document.getElementById('topic-field');
+
+    if (dateInput) {
+        dateInput.onchange = async (e) => {
+            week.roles.date = e.target.value;
+            await save('batches', batches);
+            renderTable(); // Update table instantly
+        };
     }
 
-    document.getElementById('topic-field').oninput = e => {
-        week.topic = e.target.value;
-        save('batches', batches);
-    };
+    if (topicInput) {
+        topicInput.oninput = async (e) => {
+            week.topic = e.target.value;
+            await save('batches', batches);
+            renderTable(); // Update table instantly
+        };
+    }
 }
 
 function renderParticipantDashboard() { const totalMembers = members.length; const facilitatorsPresent = totalMembers - (roles?.onLeave?.length || 0); const guestCount = currentBatch.weeks[currentWeekIdx].audienceCount || 0; const totalAttendance = facilitatorsPresent + guestCount; let dashboard = document.getElementById('participant-dashboard'); if (!dashboard) { dashboard = document.createElement('div'); dashboard.id = 'participant-dashboard'; document.querySelector('main')?.prepend(dashboard); } dashboard.innerHTML = `\n        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px;">\n            <div style="background: #e3f2fd; border: 1px solid #2196f3; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #0d47a1; font-weight: bold; text-transform: uppercase;">Total Attendance</span>\n                <div style="font-size: 1.6em; font-weight: bold; color: #0d47a1;">${totalAttendance}</div>\n            </div>\n            <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #495057; font-weight: bold; text-transform: uppercase;">Facilitators</span>\n                <div style="font-size: 1.6em; font-weight: bold;">${facilitatorsPresent}</div>\n            </div>\n            <div style="background: #fff3e0; border: 1px solid #ffe0b2; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #e65100; font-weight: bold; text-transform: uppercase;">Guest Audience</span>\n                <div style="font-size: 1.6em; font-weight: bold; color: #e65100;">${guestCount}</div>\n            </div>\n        </div>\n    `; }
@@ -560,14 +564,17 @@ document.getElementById('delete-batch-btn')?.addEventListener('click', () => { i
 
 document.getElementById('copy-roles')?.addEventListener('click', () => {
     const weekData = currentBatch.weeks[currentWeekIdx];
+    const weekDate = weekData.roles.date || 'TBD';
+    const topic = weekData.topic || 'No topic set';
+
     let text = `🚀 ${currentBatch.id} | Week ${currentWeekIdx + 1}\n`;
+    text += `📅 Date: ${weekDate}\n`; // Now includes the date in the copy string
 
     if (currentWeekIdx === 4) {
         text += `🏝️ BREAK WEEK ASSIGNMENTS\n`;
         text += `• Content: ${roles.content || '-'}\n`;
         text += `• Graphic: ${roles.graphic || '-'}\n`;
     } else {
-        const topic = weekData.topic || 'No topic set';
         const aff = (roles.affirmative || []).join(', ') || '-';
         const neg = (roles.negative || []).join(', ') || '-';
 
@@ -580,8 +587,8 @@ document.getElementById('copy-roles')?.addEventListener('click', () => {
         text += `⚙️ Manager: ${roles.manager || '-'} (Backup: ${roles.backupManager || '-'})\n\n`;
         text += `✅ Affirmative Team: ${aff}\n`;
         text += `❌ Negative Team: ${neg}\n`;
-        text += `\n Spy Judge (Affirmative): ${roles.spyAff || '-'} | Note-taker (Aff): ${roles.noteAff || '-'} (Backup: ${roles.backupNoteAff || '-'})\n`;
-        text += ` Spy Judge (Negative): ${roles.spyNeg || '-'} | Note-taker (Neg): ${roles.noteNeg || '-'} (Backup: ${roles.backupNoteNeg || '-'})\n\n`;
+        text += `\n Spy Judge (Aff): ${roles.spyAff || '-'} | Note-taker (Aff): ${roles.noteAff || '-'}\n`;
+        text += ` Spy Judge (Neg): ${roles.spyNeg || '-'} | Note-taker (Neg): ${roles.noteNeg || '-'}\n\n`;
     }
 
     if (navigator.clipboard?.writeText) {
