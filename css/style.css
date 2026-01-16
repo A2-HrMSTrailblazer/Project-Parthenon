@@ -287,127 +287,257 @@ select:focus {
 }
 
 /* --- Roles Page Layouts --- */
-.grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-2-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
 
 .support-role-row {
-    display: grid;
-    grid-template-columns: 150px 1fr 1fr;
-    gap: 15px;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #f0f7f9;
+  display: grid;
+  grid-template-columns: 150px 1fr 1fr;
+  gap: 15px;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #f0f7f9;
 }
 
 .support-role-row.header-row {
-    font-weight: bold;
-    color: var(--sky-deep);
-    background: #f0f9ff;
-    border-radius: 8px 8px 0 0;
+  font-weight: bold;
+  color: var(--sky-deep);
+  background: #f0f9ff;
+  border-radius: 8px 8px 0 0;
 }
 
-.team-container { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 15px; }
-.team-box { padding: 20px; border-radius: 15px; border: 1px solid #eee; background: white; }
-.aff-box { border-top: 5px solid var(--success); }
-.neg-box { border-top: 5px solid var(--danger); }
+.team-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-top: 15px;
+}
+.team-box {
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid #eee;
+  background: white;
+}
+.aff-box {
+  border-top: 5px solid var(--success);
+}
+.neg-box {
+  border-top: 5px solid var(--danger);
+}
 
 .checkbox-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-    margin: 15px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 15px 0;
 }
 
 .link-grid-input {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    background: #fdfdfd;
-    padding: 20px;
-    border-radius: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  background: #fdfdfd;
+  padding: 20px;
+  border-radius: 12px;
 }
 
 .floating-actions {
-    position: sticky;
-    bottom: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 30px;
-    z-index: 10;
+  position: sticky;
+  bottom: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+  z-index: 10;
 }
 
 /* Add this to Section 5 for better interactivity */
 #attendance-grid label {
-    transition: transform 0.1s ease, filter 0.2s ease;
-    user-select: none;
+  transition: transform 0.1s ease, filter 0.2s ease;
+  user-select: none;
 }
 
 #attendance-grid label:active {
-    transform: scale(0.95);
+  transform: scale(0.95);
 }
 
 #attendance-grid input:checked + span {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 /* Specific layout for the Batch Control Card */
 .control-card {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .batch-control-panel {
-    display: flex;
-    align-items: flex-end; /* Aligns buttons with the bottom of the select box */
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px dashed var(--border-light);
+  display: flex;
+  align-items: flex-end; /* Aligns buttons with the bottom of the select box */
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed var(--border-light);
 }
 
 .select-wrapper {
-    flex: 1;
-    min-width: 200px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .select-wrapper label {
-    font-size: 0.8rem;
-    font-weight: bold;
-    color: var(--sky-deep);
-    text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--sky-deep);
+  text-transform: uppercase;
 }
 
 /* Group the New/Delete buttons together */
 .batch-control-panel .button-group {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 }
 
 /* Make the week buttons more compact and professional */
 .week-selection-group {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
 }
 
 .week-btn {
-    padding: 12px 5px;
-    background: white;
-    border: 1px solid var(--border-light);
-    color: var(--sky-secondary);
-    font-size: 0.85rem;
-    border-radius: 10px;
+  padding: 12px 5px;
+  background: white;
+  border: 1px solid var(--border-light);
+  color: var(--sky-secondary);
+  font-size: 0.85rem;
+  border-radius: 10px;
 }
 
 .week-btn.active {
-    background: var(--sky-gradient);
-    color: white;
-    box-shadow: 0 4px 10px rgba(0, 180, 219, 0.2);
+  background: var(--sky-gradient);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 180, 219, 0.2);
+}
+
+/* Specific layout for Session Details (Date + Topic) */
+#topic-container .grid-2-col {
+  grid-template-columns: 1fr 2fr; /* Date is shorter, Topic is longer */
+  align-items: end;
+}
+
+#topic-container .form-group label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--sky-deep);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+#topic-container input[type="date"] {
+  cursor: pointer;
+  background-color: #fff;
+}
+
+/* Post-Session Report Styling */
+#session-report {
+  border: 2px solid var(--sky-light);
+  background: linear-gradient(to bottom right, #ffffff, #f0f9ff);
+}
+
+#session-report .support-role-row {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  margin-top: 10px;
+  padding: 20px;
+}
+
+#guest-count-input {
+  border: 2px solid var(--sky-primary);
+  color: var(--sky-deep);
+  text-align: center;
+  font-weight: bold;
+}
+
+#guest-count-input {
+  background: #fff;
+  border: 2px solid var(--sky-primary);
+  border-radius: 8px;
+  height: 45px;
+  font-size: 1.2rem;
+  color: var(--sky-deep);
+  transition: transform 0.2s;
+}
+
+#guest-count-input:hover {
+  transform: scale(1.02);
+}
+
+/* Custom Styling for Date Input */
+input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 12px;
+  /* background: white
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='22' viewBox='0 0 20 22'%3E%3Cg fill='none' fill-rule='evenodd' stroke='%2300b4db' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' transform='translate(1 1)'%3E%3Crect width='18' height='18' y='2' rx='2'/%3E%3Cpath d='M13 0v4M5 0v4M0 8h18'/%3E%3C/g%3E%3C/svg%3E")
+    no-repeat; */
+  background-position: right 12px center;
+  background-size: 18px;
+  cursor: pointer;
+  border: 2px solid var(--sky-light);
+  border-radius: 10px;
+  position: relative;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  color: transparent;
+  background: transparent;
+}
+
+/* Firefox specific hide */
+input[type="date"]::-moz-calendar-picker-indicator {
+  display: none;
+}
+
+/* Specifically for Edge's clear/reveal buttons */
+input[type="date"]::-ms-clear,
+input[type="date"]::-ms-reveal {
+  display: none;
+}
+
+/* Make it wrap nicely */
+.form-group.date-group {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#date-field:hover {
+  border-color: var(--sky-primary);
+  background-color: #f0f9ff;
 }
 
 /* ==========================================================================
@@ -506,6 +636,47 @@ tbody td {
   border: 1px solid;
 }
 
+/* Summary Table Header Overrides */
+#assignment-table tr[style*="background: var(--sky-light)"] td {
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 15px;
+  border-bottom: 2px solid var(--sky-primary);
+}
+
+#assignment-table tr[style*="background: #f8f9fa"] td {
+  padding: 8px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Team Highlight Borders */
+#assignment-table td[style*="color: var(--success)"] {
+  border-left: 4px solid var(--success);
+}
+
+#assignment-table td[style*="color: var(--danger)"] {
+  border-left: 4px solid var(--danger);
+}
+
+/* Break Week Summary Styling */
+#assignment-table tr.break-week-header {
+  background: var(--sky-light);
+  color: var(--sky-deep);
+}
+
+#assignment-table td.break-role-name {
+  width: 150px;
+  font-weight: 800;
+  color: var(--sky-secondary);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+#assignment-table td.break-assignment-value {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
 /* ==========================================================================
    7. UTILITIES & ANIMATIONS
    ========================================================================== */
@@ -521,12 +692,21 @@ tbody td {
   }
 }
 
+.date-group input[type="date"] {
+  position: relative;
+  padding-right: 40px; /* Space for the calendar icon */
+  min-height: 45px;
+}
+
 @media (max-width: 768px) {
   body.sidebar-open #content-wrapper {
     margin-left: 0;
   }
   .sidebar {
     z-index: 1002;
+  }
+  #topic-container .grid-2-col {
+    grid-template-columns: 1fr; /* Stack Date and Topic on mobile */
   }
 }
 

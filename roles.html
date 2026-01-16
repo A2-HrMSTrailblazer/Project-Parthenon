@@ -126,7 +126,7 @@
                 <select id="spy-aff"></select>
                 <label>Note-taker:</label>
                 <select id="note-aff"></select>
-                <label>Backup Note:</label>
+                <label>Backup Note-taker:</label>
                 <select id="backup-note-aff"></select>
               </div>
             </div>
@@ -140,7 +140,7 @@
                 <select id="spy-neg"></select>
                 <label>Note-taker:</label>
                 <select id="note-neg"></select>
-                <label>Backup Note:</label>
+                <label>Backup Note-taker:</label>
                 <select id="backup-note-neg"></select>
               </div>
             </div>
@@ -148,17 +148,24 @@
         </section>
 
         <section id="weekly-link-container-wrapper">
-          <h3>🔗 4. Master Links (Auto-Syncs to Link Page)</h3>
+          <h3>🔗 4. Master Links</h3>
           <div id="weekly-link-container" class="link-grid-input"></div>
+        </section>
+
+        <section id="summary-section">
+          <h3>📋 Assignment Summary</h3>
+          <div class="table-container">
+            <table id="assignment-table">
+              <tbody></tbody>
+            </table>
+          </div>
         </section>
 
         <div class="floating-actions">
           <button type="button" id="save-roles" class="btn-primary">
             💾 Save Assignments
           </button>
-          <button type="button" id="copy-roles">
-            📋 Copy to Clipboard
-          </button>
+          <button type="button" id="copy-roles">📋 Copy to Clipboard</button>
           <button type="button" id="reset-roles" class="delete-member-btn">
             🔄 Reset Week
           </button>
