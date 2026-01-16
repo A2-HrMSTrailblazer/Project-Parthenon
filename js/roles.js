@@ -266,14 +266,14 @@ function renderBreakWeekUI() {
         document.querySelector('.control-card')?.after(container);
     }
     container.innerHTML = `
-        <h3>🏝️ Break Week Coordination</h3>
+        <h3>🏝️ Break Week Assignment</h3>
         <div class="grid-2-col">
             <div class="form-group">
-                <label>Content Creator:</label>
+                <label>Content:</label>
                 <select id="content-select"></select>
             </div>
             <div class="form-group">
-                <label>Graphic Designer:</label>
+                <label>Graphic:</label>
                 <select id="graphic-select"></select>
             </div>
         </div>
@@ -413,7 +413,7 @@ function renderPostSessionReport() {
                        style="width: 120px; font-weight: bold; font-size: 1.1rem; border: 2px solid var(--sky-primary); text-align: center;">
             </div>
             <div id="auto-save-status" style="color: var(--success); font-weight: 600; opacity: 0; transition: opacity 0.3s; font-size: 0.9rem;">
-                ✓ Count Sync'd
+                Saved
             </div>
         </div>
     `;
