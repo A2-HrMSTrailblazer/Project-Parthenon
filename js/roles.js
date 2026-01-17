@@ -560,8 +560,24 @@ function getAssignmentInfo(name) { if (!name) return { count: 0, label: '', role
 // Button events (safe)
 document.getElementById('new-batch-btn')?.addEventListener('click', async () => { const name = prompt('Enter Batch Name:'); if (name) { await createNewBatch(name); window.location.reload(); } });
 
-document.getElementById('delete-batch-btn')?.addEventListener('click', () => { if (batches.length <= 1) return alert('Cannot delete the last batch.'); if (confirm(`Delete "${currentBatch.id}"?`)) { batches = batches.filter(b => b.id !== currentBatch.id); if (!batches.some(b => b.status === 'active')) batches[batches.length - 1].status = 'active'; save('batches', batches); window.location.reload(); } });
+document.getElementById('delete-batch-btn')?.addEventListener('click', async () => {
+    if (batches.length <= 1) return alert('Cannot delete the last batch.');
 
+    if (confirm(`Are you sure you want to delete "${currentBatch.id}"? This cannot be undone.`)) {
+        const deletedId = currentBatch.id;
+        batches = batches.filter(b => b.id !== deletedId);
+
+        if (!batches.some(b => b.status === 'active')) {
+            batches[batches.length - 1].status = 'active';
+        }
+
+        currentBatch = batches.find(b => b.status === 'active');
+
+        await save('batches', batches);
+
+        window.location.reload();
+    }
+});
 document.getElementById('copy-roles')?.addEventListener('click', () => {
     const weekData = currentBatch.weeks[currentWeekIdx];
     const weekDate = weekData.roles.date || 'TBD';
