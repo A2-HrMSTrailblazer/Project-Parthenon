@@ -46,7 +46,9 @@ body {
 
 /* Main wrapper that shifts when sidebar is open */
 #content-wrapper {
-  transition: margin-left 0.3s ease, padding 0.3s ease;
+  transition:
+    margin-left 0.3s ease,
+    padding 0.3s ease;
   padding: 80px 20px 20px 20px; /* Top padding for floating buttons */
   min-height: 100vh;
 }
@@ -422,7 +424,9 @@ select:focus {
 
 /* Add this to Section 5 for better interactivity */
 #attendance-grid label {
-  transition: transform 0.1s ease, filter 0.2s ease;
+  transition:
+    transform 0.1s ease,
+    filter 0.2s ease;
   user-select: none;
 }
 
@@ -764,7 +768,9 @@ tbody td {
 #member-table tbody tr {
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 #member-table td {
