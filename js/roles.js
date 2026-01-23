@@ -410,7 +410,7 @@ function renderAttendanceToggles() {
     `;
 
     const grid = document.getElementById('attendance-grid');
-    members.filter(m => !m.archived).forEach(m => {
+    getAvailableMembersForCurrentWeek().forEach(m => {
         const isOff = (roles.onLeave || []).includes(m.name);
         const label = document.createElement('label');
         label.className = `status-badge ${isOff ? 'delete-member-btn' : 'status-active'}`;
@@ -447,7 +447,8 @@ function getAllAssignedNames() {
     });
     return [...new Set(list)];
 }
-function renderPresenterList() { const sel = document.getElementById('presenter-select'); if (!sel) return; const availableMembers = members.filter(m => !m.archived && !roles.onLeave.includes(m.name)); sel.innerHTML = '<option value="">-- Select Presenter --</option>'; availableMembers.forEach(m => { const opt = document.createElement('option'); opt.value = m.name; opt.textContent = m.name; if (roles.presenter === m.name) opt.selected = true; sel.appendChild(opt); }); sel.onchange = (e) => { roles.presenter = e.target.value; const keys = ['host', 'intro', 'format', 'linkSharer', 'manager', 'spyAff', 'spyNeg', 'noteAff', 'noteNeg']; keys.forEach(k => { if (roles[k] === roles.presenter) roles[k] = ''; }); roles.affirmative = roles.affirmative.filter(n => n !== roles.presenter); roles.negative = roles.negative.filter(n => n !== roles.presenter); refreshAll(); } }
+
+function renderPresenterList() { const sel = document.getElementById('presenter-select'); if (!sel) return; const availableMembers = getAvailableMembersForCurrentWeek().filter(m => !roles.onLeave.includes(m.name)); sel.innerHTML = '<option value="">-- Select Presenter --</option>'; availableMembers.forEach(m => { const opt = document.createElement('option'); opt.value = m.name; opt.textContent = m.name; if (roles.presenter === m.name) opt.selected = true; sel.appendChild(opt); }); sel.onchange = (e) => { roles.presenter = e.target.value; const keys = ['host', 'intro', 'format', 'linkSharer', 'manager', 'spyAff', 'spyNeg', 'noteAff', 'noteNeg']; keys.forEach(k => { if (roles[k] === roles.presenter) roles[k] = ''; }); roles.affirmative = roles.affirmative.filter(n => n !== roles.presenter); roles.negative = roles.negative.filter(n => n !== roles.presenter); refreshAll(); } }
 
 function renderPostSessionReport() {
     let reportSection = document.getElementById('session-report');
@@ -497,7 +498,15 @@ function renderPostSessionReport() {
     };
 }
 
-function renderTeamCheckboxes() { const affDiv = document.getElementById('aff-checkboxes'); const negDiv = document.getElementById('neg-checkboxes'); if (!affDiv || !negDiv) return; affDiv.innerHTML = ''; negDiv.innerHTML = ''; const presentMembers = members.filter(m => !roles.onLeave.includes(m.name) && !m.archived); presentMembers.forEach(m => { if (m.name === roles.presenter) return; const isDisabledInAff = roles.negative.includes(m.name); const affCb = createCheckbox(m.name, 'aff', roles.affirmative.includes(m.name), isDisabledInAff); affDiv.appendChild(affCb); const isDisabledInNeg = roles.affirmative.includes(m.name); const negCb = createCheckbox(m.name, 'neg', roles.negative.includes(m.name), isDisabledInNeg); negDiv.appendChild(negCb); }); }
+function getAvailableMembersForCurrentWeek() {
+    const assignedInWeek = getAllAssignedNames();
+
+    return members.filter(m => {
+        return !m.archived || assignedInWeek.includes(m.name);
+    });
+}
+
+function renderTeamCheckboxes() { const affDiv = document.getElementById('aff-checkboxes'); const negDiv = document.getElementById('neg-checkboxes'); if (!affDiv || !negDiv) return; affDiv.innerHTML = ''; negDiv.innerHTML = ''; const presentMembers = getAvailableMembersForCurrentWeek().filter(m => !roles.onLeave.includes(m.name)); presentMembers.forEach(m => { if (m.name === roles.presenter) return; const isDisabledInAff = roles.negative.includes(m.name); const affCb = createCheckbox(m.name, 'aff', roles.affirmative.includes(m.name), isDisabledInAff); affDiv.appendChild(affCb); const isDisabledInNeg = roles.affirmative.includes(m.name); const negCb = createCheckbox(m.name, 'neg', roles.negative.includes(m.name), isDisabledInNeg); negDiv.appendChild(negCb); }); }
 
 function createCheckbox(name, team, isChecked, isDisabled) { const label = document.createElement('label'); const info = getAssignmentInfo(name); label.style.display = 'block'; label.style.padding = '6px 10px'; label.style.margin = '4px 0'; label.style.borderRadius = '6px'; label.style.fontSize = '0.85em'; label.style.transition = 'all 0.2s ease'; const cb = document.createElement('input'); cb.type = 'checkbox'; cb.value = name; cb.checked = isChecked; cb.disabled = isDisabled; if (isDisabled) label.style.color = '#bbb'; cb.onchange = async () => { if (team === 'aff') { if (cb.checked) roles.negative = roles.negative.filter(n => n !== name); roles.affirmative = [...document.querySelectorAll('#aff-checkboxes input:checked')].map(i => i.value); } else { if (cb.checked) roles.affirmative = roles.affirmative.filter(n => n !== name); roles.negative = [...document.querySelectorAll('#neg-checkboxes input:checked')].map(i => i.value); } await save('batches', batches); refreshAll(); }; label.appendChild(cb); label.append(` ${name}`); return label; }
 
@@ -520,7 +529,7 @@ function renderSupportRoles() {
         'backup-attendance-select': 'backupAttendanceTaker'
     };
 
-    const availableMembers = members.filter(m => !roles.onLeave.includes(m.name) && !m.archived);
+    const availableMembers = getAvailableMembersForCurrentWeek().filter(m => !roles.onLeave.includes(m.name));
 
     Object.entries(mapping).forEach(([id, key]) => {
         const sel = document.getElementById(id);

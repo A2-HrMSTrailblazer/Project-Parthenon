@@ -33,37 +33,66 @@ async function initMembers() {
 /**
  * RENDER TABLE
  */
+/**
+ * UNIFIED RENDER WITH FILTERING
+ */
 function renderMembers() {
     const tableBody = document.querySelector("#member-table tbody");
-    if (!tableBody) return;
+    const filterValue = document.getElementById("member-filter").value; // 'active' or 'archived'
+    const searchQuery = document.getElementById("member-search").value.toLowerCase();
 
+    if (!tableBody) return;
     tableBody.innerHTML = "";
 
-    const activeMembers = members.filter(m => !m.archived);
+    // Apply Filters
+    const filtered = members.filter(m => {
+        const matchesStatus = (filterValue === "archived") ? m.archived : !m.archived;
+        const matchesSearch = m.name.toLowerCase().includes(searchQuery);
+        return matchesStatus && matchesSearch;
+    });
 
-    if (activeMembers.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No active members found.</td></tr>';
+    const counterEl = document.getElementById('member-count');
+    if (counterEl) {
+        counterEl.innerText = `${filtered.length} ${filterValue === 'active' ? 'Active' : 'Archived'} Member${filtered.length !== 1 ? 's' : ''}`;
+    }
+
+    if (filtered.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="3" class="empty-state-cell">
+            No ${filterValue} members found.
+        </td></tr>`;
         return;
     }
 
-    activeMembers.forEach((m) => {
+    filtered.forEach((m) => {
+        const isArchived = m.archived;
         const firstLetter = m.name.charAt(0).toUpperCase();
+        const colors = ['#00b4db', '#0083b0', '#28a745', '#ffc107', '#dc3545', '#6610f2'];
+        const colorIdx = m.name.length % colors.length;
+        const avatarBg = isArchived ? '#ccc' : colors[colorIdx];
         const row = document.createElement("tr");
 
         row.innerHTML = `
             <td>
                 <div class="member-identity">
-                    <div class="avatar-circle">${firstLetter}</div>
-                    <strong>${m.name}</strong>
+                    <div class="avatar-circle" style="background: ${avatarBg}; transform: scale(1.1);">
+                        ${firstLetter}
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <strong>${m.name}</strong>
+                    </div>
                 </div>
             </td>
             <td>
-                <span class="status-badge status-active">Active Facilitator</span>
+                <span class="status-badge ${isArchived ? 'status-archived' : 'status-active'}">
+                    ${isArchived ? 'Archived' : 'Active Facilitator'}
+                </span>
             </td>
             <td style="text-align: right;">
-                <button class="delete-member-btn" onclick="archiveMember('${m.name}')">
-                    Remove
+                <button class="${isArchived ? 'restore-btn' : 'delete-member-btn'}" 
+                        onclick="toggleMemberStatus('${m.name}')">
+                    ${isArchived ? 'Restore' : 'Archive'}
                 </button>
+                ${isArchived ? `<button class="perm-delete-btn" onclick="permanentlyDeleteMember('${m.name}')" style="margin-left:8px; background:none; border:none; color:red; cursor:pointer; font-size:0.8em;">Perma-Delete</button>` : ''}
             </td>
         `;
         tableBody.appendChild(row);
@@ -71,52 +100,61 @@ function renderMembers() {
 }
 
 /**
- * ARCHIVE MEMBER (Soft Delete)
+ * TOGGLE STATUS (Archive/Restore)
  */
-window.archiveMember = async function(nameToArchive) {
-    if (confirm(`Archive ${nameToArchive}? They will stay in past records but won't show up for new assignments.`)) {
-        members = members.map(m =>
-            m.name === nameToArchive ? { ...m, archived: true } : m
-        );
+window.toggleMemberStatus = async function (name) {
+    const member = members.find(m => m.name === name);
+    const action = member.archived ? "Restore" : "Archive";
 
+    if (confirm(`${action} ${name}?`)) {
+        member.archived = !member.archived;
         await save("members", members);
         renderMembers();
     }
 };
+
+// Event Listeners for Filtering
+document.getElementById("member-filter").onchange = renderMembers;
+document.getElementById("member-search").oninput = renderMembers;
 
 /**
  * ADD MEMBER
  */
 document.getElementById("add-member").onclick = async () => {
-    const name = prompt("Enter new facilitator name:");
+    const name = prompt("Enter facilitator name:");
     if (!name || name.trim() === "") return;
-
     const cleanName = name.trim();
 
-    // Check for duplicates (including archived ones)
-    if (members.some(m => m.name.toLowerCase() === cleanName.toLowerCase())) {
-        alert("This name already exists in your records!");
+    const existing = members.find(m => m.name.toLowerCase() === cleanName.toLowerCase());
+
+    if (existing) {
+        if (!existing.archived) {
+            alert("This member is already active!");
+        } else {
+            if (confirm(`${cleanName} exists in archives. Restore them?`)) {
+                existing.archived = false;
+                await save("members", members);
+                // Switch view to active so user sees the restored member
+                document.getElementById("member-filter").value = "active";
+                renderMembers();
+            }
+        }
         return;
     }
 
-    const btn = document.getElementById("add-member");
-    const originalText = btn.innerText;
-
-    try {
-        btn.disabled = true;
-        btn.innerText = "Saving...";
-
-        members.push({ name: cleanName, archived: false });
-        await save("members", members);
-        
-        renderMembers();
-    } catch (error) {
-        alert("Error saving member. Please try again.");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = originalText;
-    }
+    // Truly new member
+    members.push({ name: cleanName, archived: false });
+    await save("members", members);
+    renderMembers();
 };
+
+window.permanentlyDeleteMember = async function (nameToDelete) {
+    if (confirm(`Warning: This will remove ${nameToDelete} from the entire system. Past records will show empty slots. Proceed?`)) {
+        members = members.filter(m => m.name !== nameToDelete);
+        await save("members", members);
+        renderMembers();
+    }
+}
 
 // Start the app
 initMembers();

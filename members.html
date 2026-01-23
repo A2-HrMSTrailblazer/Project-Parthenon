@@ -15,23 +15,46 @@
       <main>
         <section>
           <h3>👥 Facilitator List</h3>
-          
+
+          <div
+            class="member-controls"
+            style="display: flex; gap: 10px; margin-bottom: 20px"
+          >
+            <input
+              type="text"
+              id="member-search"
+              placeholder="Search facilitators..."
+              style="
+                flex-grow: 1;
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid #ddd;
+              "
+            />
+            <span id="member-count" class="count-badge">0 Members</span>
+            <select id="member-filter">
+              <option value="active">Active Members</option>
+              <option value="archived">Archived Records</option>
+            </select>
+          </div>
+
           <div id="table-container">
             <table id="member-table">
               <thead>
                 <tr>
                   <th>Name</th>
                   <th>Availability</th>
-                  <th style="text-align: right;">Action</th>
+                  <th style="text-align: right">Action</th>
                 </tr>
               </thead>
-              <tbody>
-                </tbody>
+              <tbody></tbody>
             </table>
           </div>
 
-          <div class="button-group" style="margin-top: 20px;">
-            <button id="add-member" class="btn-primary">+ Add New Member</button>
+          <div class="button-group" style="margin-top: 20px">
+            <button id="add-member" class="btn-primary">
+              + Add New Member
+            </button>
           </div>
         </section>
       </main>
