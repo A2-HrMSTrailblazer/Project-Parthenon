@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -10,24 +10,68 @@
     <div id="content-wrapper">
       <header>
         <h1>Debate Club Dashboard</h1>
-        <!-- <nav>
-          <a href="./index.html">Home</a>
-          <a href="./members.html">Members</a>
-          <a href="./roles.html">Roles</a>
-          <a href="./links.html">Links</a>
-        </nav> -->
       </header>
 
       <main>
-        <h2>Welcome</h2>
-        <p>
-          This is the prototype dashboard for managing weekly debate club
-          sessions.
-        </p>
+        <div class="stats-ribbon">
+          <div class="mini-stat">
+            <span class="mini-label">Total Facilitators</span>
+            <div id="stat-total-members" class="mini-value">--</div>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-label">Active Batch</span>
+            <div id="stat-active-batch" class="mini-value">--</div>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-label">Next Session</span>
+            <div id="stat-next-date" class="mini-value">--</div>
+          </div>
+        </div>
+
+        <div class="dashboard-main-grid">
+          <section class="glass-card next-session">
+            <div class="card-header">
+              <h3>🚀 Current Focus</h3>
+              <span id="current-week-badge" class="week-pill">Week -</span>
+            </div>
+            <div id="session-summary-content">
+              <p class="placeholder-text">Loading session data...</p>
+            </div>
+            <div class="card-actions">
+              <button
+                onclick="location.href = 'roles.html'"
+                class="btn-primary"
+              >
+                Manage Assignments
+              </button>
+            </div>
+          </section>
+
+          <section class="glass-card quick-nav">
+            <h3>⚡ Quick Actions</h3>
+            <div class="nav-stack">
+              <a href="members.html" class="nav-item">
+                <span class="nav-icon">👥</span>
+                <div class="nav-text">
+                  <strong>Facilitators</strong>
+                  <small>Add or Archive members</small>
+                </div>
+              </a>
+              <a href="roles.html" class="nav-item">
+                <span class="nav-icon">📝</span>
+                <div class="nav-text">
+                  <strong>Roles & Reports</strong>
+                  <small>Assign duties & guest counts</small>
+                </div>
+              </a>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/navbar.js"></script>
     <script src="./js/storage.js"></script>
+    <script src="./js/landing.js"></script>
   </body>
 </html>

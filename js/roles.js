@@ -393,7 +393,7 @@ function renderTopicInput() {
     }
 }
 
-function renderParticipantDashboard() { const totalMembers = members.length; const facilitatorsPresent = totalMembers - (roles?.onLeave?.length || 0); const guestCount = currentBatch.weeks[currentWeekIdx].audienceCount || 0; const totalAttendance = facilitatorsPresent + guestCount; let dashboard = document.getElementById('participant-dashboard'); if (!dashboard) { dashboard = document.createElement('div'); dashboard.id = 'participant-dashboard'; document.querySelector('main')?.prepend(dashboard); } dashboard.innerHTML = `\n        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px;">\n            <div style="background: #e3f2fd; border: 1px solid #2196f3; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #0d47a1; font-weight: bold; text-transform: uppercase;">Total Attendance</span>\n                <div style="font-size: 1.6em; font-weight: bold; color: #0d47a1;">${totalAttendance}</div>\n            </div>\n            <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #495057; font-weight: bold; text-transform: uppercase;">Facilitators</span>\n                <div style="font-size: 1.6em; font-weight: bold;">${facilitatorsPresent}</div>\n            </div>\n            <div style="background: #fff3e0; border: 1px solid #ffe0b2; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #e65100; font-weight: bold; text-transform: uppercase;">Guest Audience</span>\n                <div style="font-size: 1.6em; font-weight: bold; color: #e65100;">${guestCount}</div>\n            </div>\n        </div>\n    `; }
+function renderParticipantDashboard() { const facilitatorsPresent = getAvailableMembersForCurrentWeek().length - (roles?.onLeave?.length || 0); const guestCount = currentBatch.weeks[currentWeekIdx].audienceCount || 0; const totalAttendance = facilitatorsPresent + guestCount; let dashboard = document.getElementById('participant-dashboard'); if (!dashboard) { dashboard = document.createElement('div'); dashboard.id = 'participant-dashboard'; document.querySelector('main')?.prepend(dashboard); } dashboard.innerHTML = `\n        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px;">\n            <div style="background: #e3f2fd; border: 1px solid #2196f3; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #0d47a1; font-weight: bold; text-transform: uppercase;">Total Attendance</span>\n                <div style="font-size: 1.6em; font-weight: bold; color: #0d47a1;">${totalAttendance}</div>\n            </div>\n            <div style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #495057; font-weight: bold; text-transform: uppercase;">Facilitators</span>\n                <div style="font-size: 1.6em; font-weight: bold;">${facilitatorsPresent}</div>\n            </div>\n            <div style="background: #fff3e0; border: 1px solid #ffe0b2; padding: 12px; border-radius: 8px; text-align: center;">\n                <span style="font-size: 0.75em; color: #e65100; font-weight: bold; text-transform: uppercase;">Guest Audience</span>\n                <div style="font-size: 1.6em; font-weight: bold; color: #e65100;">${guestCount}</div>\n            </div>\n        </div>\n    `; }
 
 function renderAttendanceToggles() {
     let container = document.getElementById('attendance-container');
@@ -450,15 +450,22 @@ function getAllAssignedNames() {
 
 function renderPresenterList() { const sel = document.getElementById('presenter-select'); if (!sel) return; const availableMembers = getAvailableMembersForCurrentWeek().filter(m => !roles.onLeave.includes(m.name)); sel.innerHTML = '<option value="">-- Select Presenter --</option>'; availableMembers.forEach(m => { const opt = document.createElement('option'); opt.value = m.name; opt.textContent = m.name; if (roles.presenter === m.name) opt.selected = true; sel.appendChild(opt); }); sel.onchange = (e) => { roles.presenter = e.target.value; const keys = ['host', 'intro', 'format', 'linkSharer', 'manager', 'spyAff', 'spyNeg', 'noteAff', 'noteNeg']; keys.forEach(k => { if (roles[k] === roles.presenter) roles[k] = ''; }); roles.affirmative = roles.affirmative.filter(n => n !== roles.presenter); roles.negative = roles.negative.filter(n => n !== roles.presenter); refreshAll(); } }
 
+/**
+ * RENDER THE EXPANDED POST-SESSION REPORT
+ */
 function renderPostSessionReport() {
     let reportSection = document.getElementById('session-report');
 
+    // Create section dynamically if it doesn't exist
     if (!reportSection) {
         reportSection = document.createElement('section');
         reportSection.id = 'session-report';
+        reportSection.className = 'report-card'; // Matches our new CSS
 
         const main = document.querySelector('main');
         const actions = document.querySelector('.floating-actions');
+        
+        // Insert before the floating save buttons
         if (actions) {
             main.insertBefore(reportSection, actions);
         } else {
@@ -466,36 +473,76 @@ function renderPostSessionReport() {
         }
     }
 
-    const guestCount = currentBatch.weeks[currentWeekIdx].audienceCount || 0;
+    const weekData = currentBatch.weeks[currentWeekIdx];
+    
+    // Default data if none exists yet
+    const guestCount = weekData.audienceCount || 0;
+    const checklist = weekData.checklist || { slides: 'not done', zoom: 'not done', reminder: 'not done', join: 'not done' };
+    const winner = weekData.debateWinner || '';
+    const sotd = weekData.sotdName || '';
+    const notes = weekData.sessionNotes || '';
 
     reportSection.innerHTML = `
-        <h3>📊 Post-Session Report</h3>
-        <div class="support-role-row" style="border-bottom: none; background: #fcfdfe; border-radius: 10px; padding: 15px;">
-            <label><strong>Final Guest Count:</strong></label>
-            <div>
-                <input type="number" id="guest-count-input" value="${guestCount}" min="0" 
-                       style="width: 120px; font-weight: bold; font-size: 1.1rem; border: 2px solid var(--sky-primary); text-align: center;">
+        <details>
+            <summary class="report-summary">
+                <span>📊 Post-Session Report & Checklist</span>
+                <div id="auto-save-status">Saved</div>
+            </summary>
+            
+            <div class="report-content">
+                <div class="checklist-grid">
+                    ${renderCheckItem("Presentation Slide", "check-slides", checklist.slides)}
+                    ${renderCheckItem("Zoom Graphic", "check-zoom", checklist.zoom)}
+                    ${renderCheckItem("Reminder Posted", "check-reminder", checklist.reminder)}
+                    ${renderCheckItem("Join Now Posted", "check-join", checklist.join)}
+                </div>
+
+                <hr class="report-divider">
+
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label>Final Guest Count</label>
+                        <input type="number" id="guest-count-input" value="${guestCount}" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Debate Winner</label>
+                        <select id="debate-winner">
+                            <option value="" ${winner === '' ? 'selected' : ''}>-- Select Winner --</option>
+                            <option value="affirmative" ${winner === 'affirmative' ? 'selected' : ''}>Affirmative Side</option>
+                            <option value="negative" ${winner === 'negative' ? 'selected' : ''}>Negative Side</option>
+                            <option value="draw" ${winner === 'draw' ? 'selected' : ''}>Draw / Tied</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Speaker of the Day (SOTD)</label>
+                    <input type="text" id="sotd-name" value="${sotd}" placeholder="Who was the best speaker?">
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Session Notes (Optional)</label>
+                    <textarea id="session-notes" placeholder="Write any highlights or technical issues here...">${notes}</textarea>
+                </div>
             </div>
-            <div id="auto-save-status" style="color: var(--success); font-weight: 600; opacity: 0; transition: opacity 0.3s; font-size: 0.9rem;">
-                Saved
-            </div>
-        </div>
+        </details>
     `;
 
-    const input = document.getElementById('guest-count-input');
-    const status = document.getElementById('auto-save-status');
+    setupAutoSave();
+}
 
-    input.oninput = (e) => {
-        const val = parseInt(e.target.value) || 0;
-        currentBatch.weeks[currentWeekIdx].audienceCount = val;
-
-        save('batches', batches);
-
-        renderParticipantDashboard();
-
-        status.style.opacity = '1';
-        setTimeout(() => { status.style.opacity = '0'; }, 1200);
-    };
+// Helper to generate the 3-option select menus
+function renderCheckItem(label, id, value) {
+    return `
+        <div class="check-item">
+            <label>${label}</label>
+            <select id="${id}" class="check-select">
+                <option value="not done" ${value === 'not done' ? 'selected' : ''}>❌ Not Done</option>
+                <option value="in progress" ${value === 'in progress' ? 'selected' : ''}>⏳ In Progress</option>
+                <option value="done" ${value === 'done' ? 'selected' : ''}>✅ Done</option>
+            </select>
+        </div>
+    `;
 }
 
 function getAvailableMembersForCurrentWeek() {
@@ -565,6 +612,67 @@ function setupWeekButtons() { document.querySelectorAll('.week-btn').forEach(btn
 function checkArchiveStatus() { const isArchive = currentBatch?.status === 'archive'; if (!document.querySelector('main')) return; const inputs = document.querySelector('main').querySelectorAll('select, input, button'); inputs.forEach(el => { if (el.id !== 'batch-select' && el.id !== 'new-batch-btn' && !el.classList.contains('week-btn') && el.id !== 'delete-batch-btn') el.disabled = isArchive; }); document.body.style.backgroundColor = isArchive ? '#e9ecef' : '#ffffff'; }
 
 function getAssignmentInfo(name) { if (!name) return { count: 0, label: '', rolesList: [], hasTask: false }; const tasks = []; const teams = []; Object.entries(roles).forEach(([key, value]) => { if (key === 'onLeave') return; if (key === 'affirmative' || key === 'negative') { if (value.includes(name)) teams.push(key === 'affirmative' ? 'Affirmative Team' : 'Negative Team'); return; } if (value === name) tasks.push(key); }); const firstTaskKey = tasks[0]; const friendlyLabel = ROLE_LABELS[firstTaskKey] || firstTaskKey || ''; return { count: tasks.length, label: friendlyLabel, rolesList: tasks, teamList: teams, hasTask: tasks.length > 0 }; }
+
+function getReportData() {
+    return {
+        checklist: {
+            slides: document.getElementById('check-slides').value,
+            zoom: document.getElementById('check-zoom').value,
+            reminder: document.getElementById('check-reminder').value,
+            join: document.getElementById('check-join').value
+        },
+        winner: document.getElementById('debate-winner').value,
+        sotd: document.getElementById('sotd-name').value,
+        notes: document.getElementById('session-notes').value
+    };
+}
+
+function setupAutoSave() {
+    const fields = [
+        { id: 'guest-count-input', key: 'audienceCount', type: 'int' },
+        { id: 'debate-winner', key: 'debateWinner', type: 'string' },
+        { id: 'sotd-name', key: 'sotdName', type: 'string' },
+        { id: 'session-notes', key: 'sessionNotes', type: 'string' }
+    ];
+
+    const checklistIds = ['check-slides', 'check-zoom', 'check-reminder', 'check-join'];
+
+    const triggerSave = () => {
+        const week = currentBatch.weeks[currentWeekIdx];
+
+        // Save simple fields
+        fields.forEach(f => {
+            const el = document.getElementById(f.id);
+            week[f.key] = f.type === 'int' ? (parseInt(el.value) || 0) : el.value;
+        });
+
+        // Save checklist object
+        week.checklist = {
+            slides: document.getElementById('check-slides').value,
+            zoom: document.getElementById('check-zoom').value,
+            reminder: document.getElementById('check-reminder').value,
+            join: document.getElementById('check-join').value
+        };
+
+        save('batches', batches);
+
+        renderParticipantDashboard();
+
+        // Visual feedback
+        const status = document.getElementById('auto-save-status');
+        status.style.opacity = '1';
+        setTimeout(() => { status.style.opacity = '0'; }, 1000);
+    };
+
+    // Attach listeners to everything
+    [...fields.map(f => f.id), ...checklistIds].forEach(id => {
+        const el = document.getElementById(id);
+        el.onchange = triggerSave;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.oninput = triggerSave;
+        }
+    });
+}
 
 // Button events (safe)
 document.getElementById('new-batch-btn')?.addEventListener('click', async () => { const name = prompt('Enter Batch Name:'); if (name) { await createNewBatch(name); window.location.reload(); } });
